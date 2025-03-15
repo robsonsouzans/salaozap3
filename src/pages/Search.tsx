@@ -1,136 +1,160 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Search as SearchIcon, MapPin, Star, Filter, 
-  Clock, Calendar, Scissors, Phone, ChevronRight 
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Scissors, Star, MapPin, Calendar, Sparkles, Search as SearchIcon, Filter, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
+import SidebarMenu from '@/components/SidebarMenu';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
-interface SalonType {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  address: string;
-  services: string[];
-  distance?: string;
-  isOpen: boolean;
-}
+// Sample data for salons and professionals
+const salonData = [
+  {
+    id: 1,
+    name: 'Espaço Beleza',
+    image: 'https://source.unsplash.com/random/?salon,1',
+    rating: 4.9,
+    reviewCount: 127,
+    distance: '1.2 km',
+    address: 'Rua das Flores, 123',
+    services: ['Corte', 'Coloração', 'Manicure'],
+    featured: true
+  },
+  {
+    id: 2,
+    name: 'Studio Hair',
+    image: 'https://source.unsplash.com/random/?salon,2',
+    rating: 4.7,
+    reviewCount: 89,
+    distance: '1.8 km',
+    address: 'Av. Paulista, 1500',
+    services: ['Corte', 'Barba', 'Coloração'],
+    featured: false
+  },
+  {
+    id: 3,
+    name: 'Bella Estética',
+    image: 'https://source.unsplash.com/random/?salon,3',
+    rating: 4.8,
+    reviewCount: 112,
+    distance: '0.5 km',
+    address: 'Rua Augusta, 789',
+    services: ['Manicure', 'Pedicure', 'Massagem'],
+    featured: true
+  },
+  {
+    id: 4,
+    name: 'Salão VIP',
+    image: 'https://source.unsplash.com/random/?salon,4',
+    rating: 4.6,
+    reviewCount: 74,
+    distance: '2.3 km',
+    address: 'Rua Consolação, 456',
+    services: ['Corte', 'Penteado', 'Maquiagem'],
+    featured: false
+  }
+];
 
-interface ProfessionalType {
-  id: string;
-  name: string;
-  image: string;
-  rating: number;
-  reviewCount: number;
-  salon: string;
-  specialties: string[];
-  available: boolean;
-}
+const professionalData = [
+  {
+    id: 1,
+    name: 'Ana Silva',
+    image: 'https://source.unsplash.com/random/?hairstylist,1',
+    role: 'Cabeleireira',
+    rating: 4.9,
+    reviewCount: 95,
+    salon: 'Espaço Beleza',
+    specialties: ['Cortes femininos', 'Coloração']
+  },
+  {
+    id: 2,
+    name: 'João Oliveira',
+    image: 'https://source.unsplash.com/random/?barber,1',
+    role: 'Barbeiro',
+    rating: 4.8,
+    reviewCount: 87,
+    salon: 'Studio Hair',
+    specialties: ['Cortes masculinos', 'Barba']
+  },
+  {
+    id: 3,
+    name: 'Camila Mendes',
+    image: 'https://source.unsplash.com/random/?manicurist,1',
+    role: 'Manicure',
+    rating: 4.7,
+    reviewCount: 68,
+    salon: 'Bella Estética',
+    specialties: ['Unhas em gel', 'Nail art']
+  },
+  {
+    id: 4,
+    name: 'Pedro Santos',
+    image: 'https://source.unsplash.com/random/?hairstylist,2',
+    role: 'Cabeleireiro',
+    rating: 4.9,
+    reviewCount: 102,
+    salon: 'Salão VIP',
+    specialties: ['Cortes', 'Química']
+  }
+];
 
 const Search: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState('salons');
+  const [sortBy, setSortBy] = useState('rating');
+  const { toast } = useToast();
   
-  // Mock data
-  const salons: SalonType[] = [
-    {
-      id: '1',
-      name: 'Salão Glamour',
-      image: 'https://source.unsplash.com/random/300x200/?salon',
-      rating: 4.9,
-      reviewCount: 120,
-      address: 'Rua Augusta, 1200 - Consolação, São Paulo',
-      services: ['Corte', 'Coloração', 'Tratamentos', 'Manicure'],
-      distance: '1.2 km',
-      isOpen: true
-    },
-    {
-      id: '2',
-      name: 'Bela Hair',
-      image: 'https://source.unsplash.com/random/300x200/?hair',
-      rating: 4.7,
-      reviewCount: 86,
-      address: 'Av. Paulista, 1000 - Bela Vista, São Paulo',
-      services: ['Corte', 'Barba', 'Tratamentos Capilares'],
-      distance: '2.5 km',
-      isOpen: true
-    },
-    {
-      id: '3',
-      name: 'Espaço Beleza',
-      image: 'https://source.unsplash.com/random/300x200/?beauty',
-      rating: 4.5,
-      reviewCount: 64,
-      address: 'Rua Oscar Freire, 500 - Jardins, São Paulo',
-      services: ['Corte', 'Maquiagem', 'Unhas', 'Depilação'],
-      distance: '3.7 km',
-      isOpen: false
-    },
-  ];
-  
-  const professionals: ProfessionalType[] = [
-    {
-      id: '1',
-      name: 'Ana Silva',
-      image: 'https://source.unsplash.com/random/100x100/?woman',
-      rating: 4.9,
-      reviewCount: 75,
-      salon: 'Salão Glamour',
-      specialties: ['Corte Feminino', 'Coloração'],
-      available: true
-    },
-    {
-      id: '2',
-      name: 'João Pereira',
-      image: 'https://source.unsplash.com/random/100x100/?man',
-      rating: 4.8,
-      reviewCount: 63,
-      salon: 'Bela Hair',
-      specialties: ['Corte Masculino', 'Barba'],
-      available: true
-    },
-    {
-      id: '3',
-      name: 'Camila Oliveira',
-      image: 'https://source.unsplash.com/random/100x100/?woman,2',
-      rating: 4.7,
-      reviewCount: 41,
-      salon: 'Espaço Beleza',
-      specialties: ['Manicure', 'Pedicure'],
-      available: false
-    },
-  ];
-  
-  const filterSalons = () => {
-    if (!searchTerm) return salons;
-    
-    return salons.filter(
-      salon => 
-        salon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        salon.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        salon.address.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const handleBooking = (id: number, type: 'salon' | 'professional') => {
+    toast({
+      title: "Agendamento iniciado",
+      description: `Agendando com ${type === 'salon' ? 'salão' : 'profissional'} #${id}`,
+    });
   };
   
-  const filterProfessionals = () => {
-    if (!searchTerm) return professionals;
-    
-    return professionals.filter(
-      professional => 
-        professional.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        professional.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        professional.salon.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const handleFavorite = (id: number, type: 'salon' | 'professional') => {
+    toast({
+      title: "Adicionado aos favoritos",
+      description: `${type === 'salon' ? 'Salão' : 'Profissional'} foi adicionado aos favoritos`,
+    });
   };
+  
+  const filteredSalons = salonData.filter(salon => 
+    salon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    salon.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    salon.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  
+  const filteredProfessionals = professionalData.filter(pro => 
+    pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.salon.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pro.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  
+  const sortedSalons = [...filteredSalons].sort((a, b) => {
+    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
+    if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
+    return 0;
+  });
+  
+  const sortedProfessionals = [...filteredProfessionals].sort((a, b) => {
+    if (sortBy === 'rating') return b.rating - a.rating;
+    if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
+    return 0;
+  });
   
   const containerAnimation = {
     hidden: { opacity: 0 },
@@ -149,7 +173,12 @@ const Search: React.FC = () => {
   
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar />
+      <Sidebar>
+        <SidebarMenu />
+        <div className="mt-auto mb-4 px-3">
+          <ThemeToggle />
+        </div>
+      </Sidebar>
       
       <main className="md:pl-[240px] pt-16 pb-20 md:pb-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
@@ -165,281 +194,96 @@ const Search: React.FC = () => {
             >
               <div>
                 <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-gray-50">
-                  Pesquisar
+                  Encontrar Salões e Profissionais
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">
-                  Encontre salões e profissionais próximos a você
+                  Descubra os melhores salões e profissionais da sua região
                 </p>
               </div>
             </motion.div>
             
-            <motion.div variants={itemAnimation}>
-              <Card className="bg-white shadow-md border-none dark:bg-gray-800 overflow-hidden">
-                <div className="bg-gradient-to-r from-salon-500 to-salon-600 p-6 text-white">
-                  <h2 className="text-xl md:text-2xl font-display font-bold mb-4">
-                    O que você está procurando hoje?
-                  </h2>
-                  
-                  <div className="relative">
-                    <SearchIcon className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                    <Input
-                      placeholder="Busque por salões, serviços ou profissionais..."
-                      className="pl-10 h-12 text-gray-900 border-0 focus-visible:ring-2 focus-visible:ring-salon-300"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mt-4">
-                    <Badge className="bg-white/20 hover:bg-white/30 cursor-pointer" onClick={() => setSearchTerm('Corte')}>
-                      Corte
-                    </Badge>
-                    <Badge className="bg-white/20 hover:bg-white/30 cursor-pointer" onClick={() => setSearchTerm('Coloração')}>
-                      Coloração
-                    </Badge>
-                    <Badge className="bg-white/20 hover:bg-white/30 cursor-pointer" onClick={() => setSearchTerm('Manicure')}>
-                      Manicure
-                    </Badge>
-                    <Badge className="bg-white/20 hover:bg-white/30 cursor-pointer" onClick={() => setSearchTerm('Barba')}>
-                      Barba
-                    </Badge>
-                  </div>
+            <motion.div variants={itemAnimation} className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="relative flex-1">
+                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+                  <Input
+                    type="text"
+                    placeholder="Buscar por nome, serviço ou localização..."
+                    className="pl-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="flex md:w-auto w-full">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Ordenar por
+                      <ChevronDown className="h-4 w-4 ml-2" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setSortBy('rating')}>
+                      Melhor avaliação
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy('distance')}>
+                      Menor distância
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setSortBy('reviews')}>
+                      Mais avaliações
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-2 w-full md:w-1/3 mb-6">
+                  <TabsTrigger value="salons">Salões</TabsTrigger>
+                  <TabsTrigger value="professionals">Profissionais</TabsTrigger>
+                </TabsList>
                 
-                <CardContent className="p-0">
-                  <Tabs defaultValue="salons" className="w-full" onValueChange={setActiveTab}>
-                    <div className="px-6 pt-4">
-                      <TabsList className="grid grid-cols-2 w-full">
-                        <TabsTrigger value="salons">Salões</TabsTrigger>
-                        <TabsTrigger value="professionals">Profissionais</TabsTrigger>
-                      </TabsList>
-                    </div>
-                    
-                    <TabsContent value="salons" className="mt-4 px-6 pb-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm text-gray-500">
-                          {filterSalons().length} salões encontrados
-                        </p>
-                        
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
-                          Filtros
-                        </Button>
-                      </div>
-                      
-                      {filterSalons().length > 0 ? (
-                        <div className="space-y-6">
-                          {filterSalons().map((salon) => (
-                            <div 
-                              key={salon.id}
-                              className="flex flex-col md:flex-row gap-4 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-                            >
-                              <div className="md:w-1/3 h-48 md:h-auto overflow-hidden">
-                                <img 
-                                  src={salon.image} 
-                                  alt={salon.name} 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              
-                              <div className="flex-1 p-4">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h3 className="text-lg font-bold">{salon.name}</h3>
-                                    <div className="flex items-center mt-1">
-                                      <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                                      <span className="ml-1 text-sm">{salon.rating}</span>
-                                      <span className="ml-1 text-xs text-gray-500">({salon.reviewCount} avaliações)</span>
-                                    </div>
-                                  </div>
-                                  
-                                  <Badge className={salon.isOpen ? "bg-green-500" : "bg-gray-500"}>
-                                    {salon.isOpen ? "Aberto" : "Fechado"}
-                                  </Badge>
-                                </div>
-                                
-                                <div className="mt-3">
-                                  <div className="flex items-center text-sm text-gray-500 mb-2">
-                                    <MapPin className="h-4 w-4 mr-1" />
-                                    <span>{salon.address}</span>
-                                    {salon.distance && (
-                                      <Badge variant="outline" className="ml-2 h-5 px-1.5 border-gray-200">
-                                        {salon.distance}
-                                      </Badge>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex flex-wrap gap-1 mt-3">
-                                    {salon.services.map((service, index) => (
-                                      <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                        {service}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                </div>
-                                
-                                <div className="flex justify-end mt-4">
-                                  <Button variant="outline" size="sm" className="mr-2 border-salon-500 text-salon-500">
-                                    <Phone className="h-4 w-4 mr-1" />
-                                    Contato
-                                  </Button>
-                                  <Button className="bg-salon-500 hover:bg-salon-600">
-                                    <Calendar className="h-4 w-4 mr-1" />
-                                    Agendar
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <p className="text-gray-500 mb-4">
-                            Nenhum salão encontrado para "{searchTerm}".
-                          </p>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setSearchTerm('')}
-                          >
-                            Limpar busca
-                          </Button>
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="professionals" className="mt-4 px-6 pb-6">
-                      <div className="flex justify-between items-center mb-4">
-                        <p className="text-sm text-gray-500">
-                          {filterProfessionals().length} profissionais encontrados
-                        </p>
-                        
-                        <Button variant="outline" size="sm" className="flex items-center gap-2">
-                          <Filter className="h-4 w-4" />
-                          Filtros
-                        </Button>
-                      </div>
-                      
-                      {filterProfessionals().length > 0 ? (
-                        <div className="space-y-4">
-                          {filterProfessionals().map((professional) => (
-                            <div 
-                              key={professional.id}
-                              className="flex items-center p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-                            >
-                              <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
-                                <img 
-                                  src={professional.image} 
-                                  alt={professional.name} 
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              
-                              <div className="flex-1">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h3 className="font-bold">{professional.name}</h3>
-                                    <p className="text-sm text-gray-500">{professional.salon}</p>
-                                    
-                                    <div className="flex items-center mt-1">
-                                      <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                                      <span className="ml-1 text-sm">{professional.rating}</span>
-                                      <span className="ml-1 text-xs text-gray-500">({professional.reviewCount})</span>
-                                    </div>
-                                  </div>
-                                  
-                                  <Badge className={professional.available ? "bg-green-500" : "bg-gray-500"}>
-                                    {professional.available ? "Disponível" : "Indisponível"}
-                                  </Badge>
-                                </div>
-                                
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {professional.specialties.map((specialty, index) => (
-                                    <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                                      {specialty}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                              
-                              <div className="ml-4">
-                                <Button 
-                                  className="bg-salon-500 hover:bg-salon-600"
-                                  disabled={!professional.available}
-                                >
-                                  <Scissors className="h-4 w-4 mr-1" />
-                                  Agendar
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <p className="text-gray-500 mb-4">
-                            Nenhum profissional encontrado para "{searchTerm}".
-                          </p>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setSearchTerm('')}
-                          >
-                            Limpar busca
-                          </Button>
-                        </div>
-                      )}
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            </motion.div>
-            
-            <motion.div variants={itemAnimation}>
-              <Card className="bg-white shadow-md border-none dark:bg-gray-800">
-                <CardHeader>
-                  <CardTitle>Salões mais bem avaliados</CardTitle>
-                </CardHeader>
-                
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {salons.slice(0, 3).sort((a, b) => b.rating - a.rating).map((salon) => (
-                      <div 
+                <TabsContent value="salons" className="mt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {sortedSalons.map((salon) => (
+                      <SalonCard 
                         key={salon.id}
-                        className="rounded-lg overflow-hidden border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-                      >
-                        <div className="h-40 overflow-hidden">
-                          <img 
-                            src={salon.image} 
-                            alt={salon.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        
-                        <div className="p-4">
-                          <h3 className="font-bold">{salon.name}</h3>
-                          
-                          <div className="flex items-center mt-1">
-                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                            <span className="ml-1 text-sm">{salon.rating}</span>
-                            <span className="ml-1 text-xs text-gray-500">({salon.reviewCount})</span>
-                          </div>
-                          
-                          <div className="flex items-center text-sm text-gray-500 mt-2">
-                            <MapPin className="h-3.5 w-3.5 mr-1" />
-                            <span className="truncate">{salon.address.split(' - ')[0]}</span>
-                          </div>
-                          
-                          <Button
-                            variant="outline"
-                            className="w-full mt-3 text-salon-500 border-salon-500"
-                          >
-                            Ver detalhes
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </div>
-                      </div>
+                        salon={salon}
+                        onBook={() => handleBooking(salon.id, 'salon')}
+                        onFavorite={() => handleFavorite(salon.id, 'salon')}
+                      />
                     ))}
+                    
+                    {sortedSalons.length === 0 && (
+                      <div className="col-span-2 text-center py-10">
+                        <p className="text-gray-500 dark:text-gray-400">
+                          Nenhum salão encontrado com esses critérios.
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
+                </TabsContent>
+                
+                <TabsContent value="professionals" className="mt-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {sortedProfessionals.map((professional) => (
+                      <ProfessionalCard 
+                        key={professional.id}
+                        professional={professional}
+                        onBook={() => handleBooking(professional.id, 'professional')}
+                        onFavorite={() => handleFavorite(professional.id, 'professional')}
+                      />
+                    ))}
+                    
+                    {sortedProfessionals.length === 0 && (
+                      <div className="col-span-2 text-center py-10">
+                        <p className="text-gray-500 dark:text-gray-400">
+                          Nenhum profissional encontrado com esses critérios.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
             </motion.div>
           </motion.div>
         </div>
@@ -447,6 +291,140 @@ const Search: React.FC = () => {
       
       <BottomNav />
     </div>
+  );
+};
+
+interface SalonCardProps {
+  salon: typeof salonData[0];
+  onBook: () => void;
+  onFavorite: () => void;
+}
+
+const SalonCard: React.FC<SalonCardProps> = ({ salon, onBook, onFavorite }) => {
+  return (
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md border-none dark:bg-gray-800">
+      <div className="relative">
+        <img 
+          src={salon.image} 
+          alt={salon.name} 
+          className="w-full h-48 object-cover"
+        />
+        {salon.featured && (
+          <div className="absolute top-2 right-2 bg-salon-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
+            <Sparkles className="h-3 w-3 mr-1" />
+            Destaque
+          </div>
+        )}
+      </div>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-bold">{salon.name}</h3>
+          <div className="flex items-center text-sm">
+            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
+            <span className="font-medium">{salon.rating}</span>
+            <span className="text-gray-500 dark:text-gray-400 ml-1">({salon.reviewCount})</span>
+          </div>
+        </div>
+        
+        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mb-2">
+          <MapPin className="h-4 w-4 mr-1" />
+          <span>{salon.address} • {salon.distance}</span>
+        </div>
+        
+        <div className="flex flex-wrap gap-1 mb-4">
+          {salon.services.map((service, idx) => (
+            <Badge key={idx} variant="secondary" className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
+              {service}
+            </Badge>
+          ))}
+        </div>
+        
+        <div className="flex space-x-2">
+          <Button 
+            className="flex-1 bg-salon-500 hover:bg-salon-600 text-white"
+            onClick={onBook}
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Agendar
+          </Button>
+          <Button 
+            variant="outline" 
+            className="border-salon-500 text-salon-500 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-700"
+            onClick={onFavorite}
+          >
+            Favoritar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+interface ProfessionalCardProps {
+  professional: typeof professionalData[0];
+  onBook: () => void;
+  onFavorite: () => void;
+}
+
+const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, onBook, onFavorite }) => {
+  return (
+    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md border-none dark:bg-gray-800">
+      <div className="flex">
+        <div className="w-1/3">
+          <img 
+            src={professional.image} 
+            alt={professional.name} 
+            className="w-full h-full object-cover"
+          />
+        </div>
+        <CardContent className="p-4 w-2/3">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="text-lg font-bold">{professional.name}</h3>
+            <div className="flex items-center text-sm">
+              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
+              <span className="font-medium">{professional.rating}</span>
+              <span className="text-gray-500 dark:text-gray-400 ml-1">({professional.reviewCount})</span>
+            </div>
+          </div>
+          
+          <div className="flex items-center mb-1">
+            <Badge className="bg-salon-100 text-salon-800 dark:bg-salon-900 dark:text-salon-200 border-none">
+              {professional.role}
+            </Badge>
+          </div>
+          
+          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mb-2">
+            <Scissors className="h-4 w-4 mr-1" />
+            <span>{professional.salon}</span>
+          </div>
+          
+          <div className="flex flex-wrap gap-1 mb-4">
+            {professional.specialties.map((specialty, idx) => (
+              <Badge key={idx} variant="outline" className="text-xs">
+                {specialty}
+              </Badge>
+            ))}
+          </div>
+          
+          <div className="flex space-x-2">
+            <Button 
+              className="flex-1 bg-salon-500 hover:bg-salon-600 text-white"
+              onClick={onBook}
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Agendar
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-salon-500 text-salon-500 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-700"
+              onClick={onFavorite}
+            >
+              Favoritar
+            </Button>
+          </div>
+        </CardContent>
+      </div>
+    </Card>
   );
 };
 

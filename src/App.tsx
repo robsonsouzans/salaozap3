@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from '@/hooks/use-theme';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -38,53 +39,55 @@ function App() {
   }, []);
   
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+    <ThemeProvider defaultTheme="light">
+      <Router>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/appointments" 
+            element={
+              <ProtectedRoute>
+                <Appointments />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/search" 
+            element={
+              <ProtectedRoute>
+                <Search />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
         
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/appointments" 
-          element={
-            <ProtectedRoute>
-              <Appointments />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/search" 
-          element={
-            <ProtectedRoute>
-              <Search />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-      
-      <Toaster />
-    </Router>
+        <Toaster />
+      </Router>
+    </ThemeProvider>
   );
 }
 
