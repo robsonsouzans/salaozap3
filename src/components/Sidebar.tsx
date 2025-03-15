@@ -4,8 +4,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, Home, Calendar, User, Search, Settings, LogOut, Menu } from 'lucide-react';
 import Logo from './Logo';
+import { ThemeToggle } from './ThemeToggle';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  children?: React.ReactNode;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
   
@@ -107,6 +112,7 @@ const Sidebar: React.FC = () => {
           </nav>
           
           <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+            {children}
             <Link
               to="/logout"
               className="flex items-center text-sm font-medium text-gray-700 hover:text-salon-600 dark:text-gray-300 dark:hover:text-salon-400"
@@ -197,6 +203,7 @@ const Sidebar: React.FC = () => {
               </nav>
               
               <div className="p-4 border-t border-gray-100 dark:border-gray-800">
+                {children}
                 <Link
                   to="/logout"
                   className="flex items-center text-sm font-medium text-gray-700 hover:text-salon-600 dark:text-gray-300 dark:hover:text-salon-400"

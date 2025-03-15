@@ -5,6 +5,7 @@ import { Check, ChevronRight, Star, Calendar, Clock, CreditCard, Users, Sparkles
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Logo from '@/components/Logo';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -14,11 +15,11 @@ const Index = () => {
       {/* Header */}
       <header className="w-full py-4 px-6 md:px-12 lg:px-24 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Logo className="h-8 w-8" />
-          <span className="font-display text-xl font-bold text-salon-500">SalãoZap</span>
+          <Logo />
         </div>
         
         <div className="flex items-center space-x-4">
+          <ThemeToggle />
           <Button 
             variant="ghost" 
             className="text-gray-700 hover:text-salon-500 dark:text-gray-300 dark:hover:text-salon-400"
@@ -80,8 +81,8 @@ const Index = () => {
               Novo
             </div>
             <img 
-              src="https://source.unsplash.com/random/?salon,hairstyle" 
-              alt="Salon App Demo" 
+              src="https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1169&q=80" 
+              alt="Salão de Beleza" 
               className="rounded-2xl shadow-2xl w-full object-cover h-[400px]"
             />
           </div>
@@ -230,12 +231,75 @@ const Index = () => {
         </div>
       </section>
       
+      {/* Gallery Section */}
+      <section className="w-full px-6 md:px-12 lg:px-24 py-16 bg-white dark:bg-gray-800">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-gray-900 dark:text-white mb-4">
+            Conheça nossos serviços
+          </h2>
+          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            Oferecemos uma ampla gama de serviços de beleza para atender às suas necessidades.
+          </p>
+        </motion.div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-lg overflow-hidden shadow-md"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
+              alt="Corte de cabelo" 
+              className="w-full h-64 object-cover" 
+            />
+            <div className="p-4 bg-white dark:bg-gray-900">
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">Corte de Cabelo</h3>
+              <p className="text-gray-600 dark:text-gray-400">Cortes modernos e personalizados</p>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-lg overflow-hidden shadow-md"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1635347473559-73548f0cad97?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+              alt="Manicure e Pedicure" 
+              className="w-full h-64 object-cover" 
+            />
+            <div className="p-4 bg-white dark:bg-gray-900">
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">Manicure e Pedicure</h3>
+              <p className="text-gray-600 dark:text-gray-400">Unhas impecáveis e bem cuidadas</p>
+            </div>
+          </motion.div>
+          
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="rounded-lg overflow-hidden shadow-md"
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1544717305-996b815c338c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80" 
+              alt="Tratamentos Faciais" 
+              className="w-full h-64 object-cover" 
+            />
+            <div className="p-4 bg-white dark:bg-gray-900">
+              <h3 className="font-bold text-lg text-gray-900 dark:text-white">Tratamentos Faciais</h3>
+              <p className="text-gray-600 dark:text-gray-400">Cuidados especiais para sua pele</p>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+      
       {/* Footer */}
       <footer className="w-full px-6 md:px-12 lg:px-24 py-12 bg-white dark:bg-gray-800">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div className="flex items-center gap-2 mb-6 md:mb-0">
-            <Logo className="h-8 w-8" />
-            <span className="font-display text-xl font-bold text-salon-500">SalãoZap</span>
+            <Logo />
           </div>
           
           <div className="flex flex-col md:flex-row items-center gap-6">
