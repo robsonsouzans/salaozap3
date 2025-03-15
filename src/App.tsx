@@ -1,27 +1,91 @@
+
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
+import Index from '@/pages/Index';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import Dashboard from '@/pages/Dashboard';
+import Appointments from '@/pages/Appointments';
+import Search from '@/pages/Search';
+import Profile from '@/pages/Profile';
+import NotFound from '@/pages/NotFound';
+import { getCurrentUser } from '@/lib/auth';
+import './App.css';
 
-const queryClient = new QueryClient();
+type ProtectedRouteProps = {
+  children: React.ReactNode;
+};
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
+  const user = getCurrentUser();
+  
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+function App() {
+  useEffect(() => {
+    // Add glass-card effect class to body
+    document.body.classList.add('bg-pattern');
+    
+    return () => {
+      document.body.classList.remove('bg-pattern');
+    };
+  }, []);
+  
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/appointments" 
+          element={
+            <ProtectedRoute>
+              <Appointments />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/search" 
+          element={
+            <ProtectedRoute>
+              <Search />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/profile" 
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      
       <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </Router>
+  );
+}
 
 export default App;
