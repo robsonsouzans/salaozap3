@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, PlusCircle, Star, User, UserPlus, List } from 'lucide-react';
+import { Calendar, Clock, PlusCircle, Star, User, UserPlus, List, Scissors, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Sidebar from '@/components/Sidebar';
@@ -21,7 +20,6 @@ const Dashboard: React.FC = () => {
   const [user, setUser] = useState(getCurrentUser());
   const isClient = user?.role === 'client';
   
-  // Mock appointments data
   const [upcomingAppointments, setUpcomingAppointments] = useState<AppointmentType[]>([
     {
       id: '1',
@@ -41,7 +39,6 @@ const Dashboard: React.FC = () => {
     },
   ]);
   
-  // Format date to display in Brazilian format
   const formatDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = { 
       day: '2-digit', 
@@ -51,7 +48,6 @@ const Dashboard: React.FC = () => {
     return new Date(dateString).toLocaleDateString('pt-BR', options);
   };
   
-  // Container animation
   const containerAnimation = {
     hidden: { opacity: 0 },
     show: {
@@ -62,7 +58,6 @@ const Dashboard: React.FC = () => {
     },
   };
   
-  // Item animation
   const itemAnimation = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 },
@@ -80,7 +75,6 @@ const Dashboard: React.FC = () => {
             animate="show"
             className="space-y-8"
           >
-            {/* Header */}
             <motion.div
               variants={itemAnimation}
               className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
@@ -102,7 +96,6 @@ const Dashboard: React.FC = () => {
               </Button>
             </motion.div>
             
-            {/* Quick stats */}
             <motion.div 
               variants={itemAnimation}
               className="grid grid-cols-1 md:grid-cols-3 gap-4"
@@ -151,7 +144,6 @@ const Dashboard: React.FC = () => {
               </Card>
             </motion.div>
             
-            {/* Upcoming appointments */}
             <motion.div variants={itemAnimation}>
               <Card className="bg-white shadow-md border-none dark:bg-gray-800">
                 <CardHeader className="pb-2">
@@ -220,7 +212,6 @@ const Dashboard: React.FC = () => {
               </Card>
             </motion.div>
             
-            {/* Additional features */}
             <motion.div variants={itemAnimation} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {isClient ? (
                 <>
@@ -230,7 +221,6 @@ const Dashboard: React.FC = () => {
                       <CardDescription>Salões bem avaliados na sua região</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Placeholder content */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="w-10 h-10 rounded-full bg-gray-200 mr-3 flex items-center justify-center">
