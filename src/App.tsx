@@ -15,6 +15,11 @@ import Settings from '@/pages/Settings';
 import AppearanceSettings from '@/pages/settings/AppearanceSettings';
 import NotificationsSettings from '@/pages/settings/NotificationsSettings';
 import SecuritySettings from '@/pages/settings/SecuritySettings';
+import BusinessHoursSettings from '@/pages/settings/BusinessHoursSettings';
+import PaymentMethodsSettings from '@/pages/settings/PaymentMethodsSettings';
+import IntegrationsSettings from '@/pages/settings/IntegrationsSettings';
+import ServicesPage from '@/pages/services/ServicesPage';
+import EmployeesPage from '@/pages/employees/EmployeesPage';
 import NotFound from '@/pages/NotFound';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
@@ -88,6 +93,7 @@ function App() {
               } 
             />
             
+            {/* Settings routes */}
             <Route path="/settings">
               <Route 
                 index
@@ -121,7 +127,51 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              <Route 
+                path="business-hours" 
+                element={
+                  <ProtectedRoute>
+                    <BusinessHoursSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="payment-methods" 
+                element={
+                  <ProtectedRoute>
+                    <PaymentMethodsSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="integrations" 
+                element={
+                  <ProtectedRoute>
+                    <IntegrationsSettings />
+                  </ProtectedRoute>
+                } 
+              />
             </Route>
+            
+            {/* Service management */}
+            <Route 
+              path="/services" 
+              element={
+                <ProtectedRoute>
+                  <ServicesPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Employee management */}
+            <Route 
+              path="/employees" 
+              element={
+                <ProtectedRoute>
+                  <EmployeesPage />
+                </ProtectedRoute>
+              } 
+            />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
