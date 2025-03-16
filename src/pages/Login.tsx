@@ -2,27 +2,32 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Lock, Mail, User, Scissors } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Logo from '@/components/Logo';
 import AuthCard from '@/components/AuthCard';
 import AnimatedBubbles from '@/components/AnimatedBubbles';
-import { login, demoLogin } from '@/lib/auth';
+import { login } from '@/lib/auth';
+import { useToast } from '@/hooks/use-toast';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('client');
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -30,21 +35,25 @@ const Login: React.FC = () => {
     
     try {
       await login({ email, password });
+      toast({
+        title: "Login realizado com sucesso!",
+        description: "Você será redirecionado para o dashboard",
+      });
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
+      toast({
+        title: "Erro ao fazer login",
+        description: "Verifique suas credenciais e tente novamente",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
     }
   };
   
-  const handleDemoLogin = (type: 'client' | 'salon') => {
-    demoLogin(type);
-    navigate('/dashboard');
-  };
-  
   return (
-    <div className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <AnimatedBubbles color="rgba(99, 102, 241, 0.1)" />
       
       <motion.div
@@ -62,156 +71,92 @@ const Login: React.FC = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          <h1 className="text-2xl font-display font-semibold text-center mb-2 text-gray-900">
+          <h1 className="text-2xl font-display font-semibold text-center mb-2 text-gray-900 dark:text-white">
             Bem-vindo de volta
           </h1>
-          <p className="text-gray-500 text-center mb-8">
-            Acesse sua conta para gerenciar seus agendamentos
+          <p className="text-gray-500 dark:text-gray-400 text-center mb-8">
+            Faça login para acessar sua conta
           </p>
         </motion.div>
         
         <AuthCard>
-          <Tabs defaultValue="client" className="w-full" onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="client" className="rounded-l-md">
-                <User className="mr-2 h-4 w-4" />
-                Cliente
-              </TabsTrigger>
-              <TabsTrigger value="salon" className="rounded-r-md">
-                <Scissors className="mr-2 h-4 w-4" />
-                Salão
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="client" className="mt-0">
-              <form onSubmit={handleLogin}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <div className="absolute left-3 top-3 text-gray-400">
-                        <Mail size={16} />
-                      </div>
-                      <Input
-                        type="email"
-                        placeholder="Digite seu email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-12 focus-animation"
-                        required
-                      />
-                    </div>
+          <form onSubmit={handleLogin}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="relative">
+                  <div className="absolute left-3 top-3 text-gray-400">
+                    <Mail size={16} />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <div className="absolute left-3 top-3 text-gray-400">
-                        <Lock size={16} />
-                      </div>
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Digite sua senha"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 h-12 focus-animation"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                    <div className="flex justify-end">
-                      <Link
-                        to="/forgot-password"
-                        className="text-sm text-salon-600 hover:text-salon-700 slide-underline"
-                      >
-                        Esqueci minha senha
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    className="w-full bg-salon-500 hover:bg-salon-600 text-white h-12 transition-all"
-                    disabled={loading}
-                  >
-                    {loading ? 'Entrando...' : 'Entrar'}
-                  </Button>
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-10 h-12 focus-animation"
+                    required
+                  />
                 </div>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="salon" className="mt-0">
-              <form onSubmit={handleLogin}>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <div className="absolute left-3 top-3 text-gray-400">
-                        <Mail size={16} />
-                      </div>
-                      <Input
-                        type="email"
-                        placeholder="Email do salão"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="pl-10 h-12 focus-animation"
-                        required
-                      />
-                    </div>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="relative">
+                  <div className="absolute left-3 top-3 text-gray-400">
+                    <Lock size={16} />
                   </div>
-                  
-                  <div className="space-y-2">
-                    <div className="relative">
-                      <div className="absolute left-3 top-3 text-gray-400">
-                        <Lock size={16} />
-                      </div>
-                      <Input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Senha"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="pl-10 pr-10 h-12 focus-animation"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                    <div className="flex justify-end">
-                      <Link
-                        to="/forgot-password"
-                        className="text-sm text-salon-600 hover:text-salon-700 slide-underline"
-                      >
-                        Esqueci minha senha
-                      </Link>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    className="w-full bg-salon-500 hover:bg-salon-600 text-white h-12 transition-all"
-                    disabled={loading}
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10 pr-10 h-12 focus-animation"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
                   >
-                    {loading ? 'Entrando...' : 'Entrar'}
-                  </Button>
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
-              </form>
-            </TabsContent>
-          </Tabs>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <input
+                    id="remember-me"
+                    name="remember-me"
+                    type="checkbox"
+                    className="h-4 w-4 text-salon-600 focus:ring-salon-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                    Lembrar de mim
+                  </label>
+                </div>
+                
+                <div className="text-sm">
+                  <a href="#" className="font-medium text-salon-600 hover:text-salon-500 dark:text-salon-400 dark:hover:text-salon-300">
+                    Esqueceu a senha?
+                  </a>
+                </div>
+              </div>
+              
+              <Button
+                type="submit"
+                className="w-full bg-salon-500 hover:bg-salon-600 text-white h-12 transition-all"
+                disabled={loading}
+              >
+                {loading ? 'Entrando...' : 'Entrar'}
+              </Button>
+            </div>
+          </form>
           
           <div className="mt-6 relative flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
             </div>
-            <div className="relative px-4 text-sm bg-white text-gray-500 dark:bg-black dark:text-gray-400">
-              ou continue com
+            <div className="relative px-4 text-sm bg-white text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+              ou entre com
             </div>
           </div>
           
@@ -255,21 +200,11 @@ const Login: React.FC = () => {
           </div>
           
           <div className="mt-6 text-center">
-            <Button
-              variant="link"
-              onClick={() => handleDemoLogin(activeTab as 'client' | 'salon')}
-              className="text-salon-600 hover:text-salon-700"
-            >
-              Experimentar como {activeTab === 'client' ? 'cliente' : 'salão'}
-            </Button>
-          </div>
-          
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Não tem uma conta?{' '}
               <Link
                 to="/register"
-                className="font-medium text-salon-600 hover:text-salon-700 slide-underline"
+                className="font-medium text-salon-600 hover:text-salon-700 slide-underline dark:text-salon-400 dark:hover:text-salon-300"
               >
                 Cadastre-se
               </Link>

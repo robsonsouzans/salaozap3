@@ -28,7 +28,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
       <div className="fixed top-4 left-4 md:hidden z-50">
         <button
           onClick={() => setIsCollapsed(prev => !prev)}
-          className="p-2 rounded-full bg-white shadow-md text-gray-700 hover:bg-gray-50 transition-colors"
+          className="p-2 rounded-full bg-white shadow-md text-gray-700 hover:bg-gray-50 transition-colors dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
         >
           <Menu size={24} />
         </button>
@@ -62,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
             
             <button
               onClick={() => setIsCollapsed(prev => !prev)}
-              className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-gray-800"
+              className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-gray-800 dark:text-gray-400"
             >
               <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
             </button>
@@ -163,7 +163,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                 <Logo size="medium" />
                 <button
                   onClick={() => setIsCollapsed(false)}
-                  className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-gray-800"
+                  className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500 transition-colors dark:hover:bg-gray-800 dark:text-gray-400"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>

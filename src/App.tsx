@@ -11,6 +11,7 @@ import Dashboard from '@/pages/Dashboard';
 import Appointments from '@/pages/Appointments';
 import Search from '@/pages/Search';
 import Profile from '@/pages/Profile';
+import Settings from '@/pages/Settings';
 import NotFound from '@/pages/NotFound';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
@@ -80,6 +81,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               } 
             />
