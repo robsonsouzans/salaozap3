@@ -12,6 +12,9 @@ import Appointments from '@/pages/Appointments';
 import Search from '@/pages/Search';
 import Profile from '@/pages/Profile';
 import Settings from '@/pages/Settings';
+import AppearanceSettings from '@/pages/settings/AppearanceSettings';
+import NotificationsSettings from '@/pages/settings/NotificationsSettings';
+import SecuritySettings from '@/pages/settings/SecuritySettings';
 import NotFound from '@/pages/NotFound';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
@@ -85,14 +88,40 @@ function App() {
               } 
             />
             
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/settings">
+              <Route 
+                index
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="appearance" 
+                element={
+                  <ProtectedRoute>
+                    <AppearanceSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="notifications" 
+                element={
+                  <ProtectedRoute>
+                    <NotificationsSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="security" 
+                element={
+                  <ProtectedRoute>
+                    <SecuritySettings />
+                  </ProtectedRoute>
+                } 
+              />
+            </Route>
             
             <Route path="*" element={<NotFound />} />
           </Routes>

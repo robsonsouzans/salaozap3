@@ -22,6 +22,14 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
     { name: 'Configurações', path: '/settings', icon: Settings },
   ];
   
+  // Check if the current path starts with a nav item path
+  const isActivePath = (path: string) => {
+    if (path === '/dashboard') {
+      return location.pathname === path;
+    }
+    return location.pathname.startsWith(path);
+  };
+  
   return (
     <>
       {/* Mobile menu trigger */}
@@ -75,13 +83,13 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                   <Link
                     to={item.path}
                     className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      location.pathname === item.path 
+                      isActivePath(item.path) 
                         ? 'bg-salon-50 text-salon-700 dark:bg-gray-800 dark:text-salon-400' 
                         : 'hover:bg-gray-100 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-300'
                     }`}
                   >
                     <item.icon className={`h-5 w-5 mr-2 flex-shrink-0 ${
-                      location.pathname === item.path 
+                      isActivePath(item.path) 
                         ? 'text-salon-500' 
                         : 'text-gray-500 dark:text-gray-400'
                     }`} />
@@ -98,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                       )}
                     </AnimatePresence>
                     
-                    {location.pathname === item.path && (
+                    {isActivePath(item.path) && (
                       <motion.div
                         layoutId="sidebarIndicator"
                         className="absolute left-0 w-1 h-6 bg-salon-500 rounded-r-full"
@@ -176,20 +184,20 @@ const Sidebar: React.FC<SidebarProps> = ({ children }) => {
                       <Link
                         to={item.path}
                         className={`flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                          location.pathname === item.path 
+                          isActivePath(item.path) 
                             ? 'bg-salon-50 text-salon-700 dark:bg-gray-800 dark:text-salon-400' 
                             : 'hover:bg-gray-100 text-gray-700 dark:hover:bg-gray-800 dark:text-gray-300'
                         }`}
                         onClick={() => setIsCollapsed(false)}
                       >
                         <item.icon className={`h-5 w-5 mr-2 flex-shrink-0 ${
-                          location.pathname === item.path 
+                          isActivePath(item.path) 
                             ? 'text-salon-500' 
                             : 'text-gray-500 dark:text-gray-400'
                         }`} />
                         <span>{item.name}</span>
                         
-                        {location.pathname === item.path && (
+                        {isActivePath(item.path) && (
                           <motion.div
                             layoutId="mobileSidebarIndicator"
                             className="absolute left-0 w-1 h-6 bg-salon-500 rounded-r-full"
