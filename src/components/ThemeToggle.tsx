@@ -23,7 +23,7 @@ export function ThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full"
+      className="rounded-full transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       aria-label="Alternar tema"
     >
       {theme === "light" ? (

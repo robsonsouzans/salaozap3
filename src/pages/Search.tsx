@@ -1,430 +1,408 @@
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Scissors, Star, MapPin, Calendar, Sparkles, Search as SearchIcon, Filter, ChevronDown } from 'lucide-react';
+import { Sidebar } from '@/components/Sidebar';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Star, MapPin, Clock, Scissors, Filter, Search as SearchIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import Sidebar from '@/components/Sidebar';
-import BottomNav from '@/components/BottomNav';
-import SidebarMenu from '@/components/SidebarMenu';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { useNavigate } from 'react-router-dom';
 
-// Sample data for salons and professionals
-const salonData = [
+const salons = [
   {
     id: 1,
-    name: 'Espaço Beleza',
-    image: 'https://source.unsplash.com/random/?salon,1',
-    rating: 4.9,
-    reviewCount: 127,
+    name: 'Salão Beleza Divina',
+    image: 'https://images.unsplash.com/photo-1470259078422-826894b933aa?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.8,
+    reviews: 127,
+    location: 'Centro, São Paulo',
     distance: '1.2 km',
-    address: 'Rua das Flores, 123',
-    services: ['Corte', 'Coloração', 'Manicure'],
-    featured: true
+    services: ['Corte', 'Coloração', 'Manicure', 'Pedicure'],
+    price: '$$',
+    availability: 'Hoje às 14:00'
   },
   {
     id: 2,
-    name: 'Studio Hair',
-    image: 'https://source.unsplash.com/random/?salon,2',
-    rating: 4.7,
-    reviewCount: 89,
-    distance: '1.8 km',
-    address: 'Av. Paulista, 1500',
-    services: ['Corte', 'Barba', 'Coloração'],
-    featured: false
+    name: 'Studio Hair Professional',
+    image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.5,
+    reviews: 93,
+    location: 'Pinheiros, São Paulo',
+    distance: '3.5 km',
+    services: ['Corte', 'Penteado', 'Tratamentos'],
+    price: '$$$',
+    availability: 'Hoje às 16:30'
   },
   {
     id: 3,
-    name: 'Bella Estética',
-    image: 'https://source.unsplash.com/random/?salon,3',
-    rating: 4.8,
-    reviewCount: 112,
-    distance: '0.5 km',
-    address: 'Rua Augusta, 789',
-    services: ['Manicure', 'Pedicure', 'Massagem'],
-    featured: true
+    name: 'Belle Spa & Cabelo',
+    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.9,
+    reviews: 218,
+    location: 'Moema, São Paulo',
+    distance: '5.1 km',
+    services: ['Spa', 'Massagem', 'Corte', 'Coloração'],
+    price: '$$$$',
+    availability: 'Amanhã às 10:00'
   },
   {
     id: 4,
-    name: 'Salão VIP',
-    image: 'https://source.unsplash.com/random/?salon,4',
+    name: 'Barbearia Moderna',
+    image: 'https://images.unsplash.com/photo-1503951914875-452162b0f3f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.7,
+    reviews: 156,
+    location: 'Vila Madalena, São Paulo',
+    distance: '2.8 km',
+    services: ['Corte Masculino', 'Barba', 'Tratamentos'],
+    price: '$$',
+    availability: 'Hoje às 17:45'
+  },
+  {
+    id: 5,
+    name: 'Espaço Bem Estar',
+    image: 'https://images.unsplash.com/photo-1532710093739-9470acff878f?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.3,
+    reviews: 72,
+    location: 'Itaim Bibi, São Paulo',
+    distance: '4.3 km',
+    services: ['Massagem', 'Unhas', 'Depilação'],
+    price: '$$$',
+    availability: 'Amanhã às 14:30'
+  },
+  {
+    id: 6,
+    name: 'Art & Color Studio',
+    image: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
     rating: 4.6,
-    reviewCount: 74,
-    distance: '2.3 km',
-    address: 'Rua Consolação, 456',
-    services: ['Corte', 'Penteado', 'Maquiagem'],
-    featured: false
+    reviews: 115,
+    location: 'Jardins, São Paulo',
+    distance: '3.2 km',
+    services: ['Coloração', 'Mechas', 'Tratamentos'],
+    price: '$$$',
+    availability: 'Hoje às 15:15'
   }
 ];
 
-const professionalData = [
+const professionals = [
   {
     id: 1,
-    name: 'Ana Silva',
-    image: 'https://source.unsplash.com/random/?hairstylist,1',
-    role: 'Cabeleireira',
+    name: 'Amanda Silva',
+    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
     rating: 4.9,
-    reviewCount: 95,
-    salon: 'Espaço Beleza',
-    specialties: ['Cortes femininos', 'Coloração']
+    reviews: 187,
+    specialty: 'Colorista e Cabeleireira',
+    salon: 'Salão Beleza Divina',
+    price: '$$',
+    availability: 'Hoje às 14:00'
   },
   {
     id: 2,
-    name: 'João Oliveira',
-    image: 'https://source.unsplash.com/random/?barber,1',
-    role: 'Barbeiro',
-    rating: 4.8,
-    reviewCount: 87,
-    salon: 'Studio Hair',
-    specialties: ['Cortes masculinos', 'Barba']
+    name: 'Rafael Costa',
+    image: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.7,
+    reviews: 103,
+    specialty: 'Barbeiro',
+    salon: 'Barbearia Moderna',
+    price: '$$',
+    availability: 'Hoje às 16:00'
   },
   {
     id: 3,
-    name: 'Camila Mendes',
-    image: 'https://source.unsplash.com/random/?manicurist,1',
-    role: 'Manicure',
-    rating: 4.7,
-    reviewCount: 68,
-    salon: 'Bella Estética',
-    specialties: ['Unhas em gel', 'Nail art']
+    name: 'Carolina Mendes',
+    image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.8,
+    reviews: 156,
+    specialty: 'Manicure e Pedicure',
+    salon: 'Belle Spa & Cabelo',
+    price: '$$$',
+    availability: 'Amanhã às 10:30'
   },
   {
     id: 4,
-    name: 'Pedro Santos',
-    image: 'https://source.unsplash.com/random/?hairstylist,2',
-    role: 'Cabeleireiro',
-    rating: 4.9,
-    reviewCount: 102,
-    salon: 'Salão VIP',
-    specialties: ['Cortes', 'Química']
+    name: 'Pedro Almeida',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.6,
+    reviews: 89,
+    specialty: 'Corte Masculino e Barba',
+    salon: 'Barbearia Moderna',
+    price: '$$',
+    availability: 'Hoje às 18:00'
   }
 ];
 
-const Search: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState('salons');
-  const [sortBy, setSortBy] = useState('rating');
+const Search = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Busca realizada",
+      description: `Procurando por: ${searchQuery || 'todos os serviços'}`,
+    });
+  };
+  
+  const handleFilterClick = (filter: string) => {
+    setActiveFilter(activeFilter === filter ? null : filter);
+    toast({
+      title: "Filtro aplicado",
+      description: `Filtro: ${filter}`,
+    });
+  };
   
   const handleBooking = (id: number, type: 'salon' | 'professional') => {
     toast({
       title: "Agendamento iniciado",
-      description: `Agendando com ${type === 'salon' ? 'salão' : 'profissional'} #${id}`,
+      description: `Iniciando agendamento com ${type === 'salon' ? 'salão' : 'profissional'} #${id}`,
     });
-  };
-  
-  const handleFavorite = (id: number, type: 'salon' | 'professional') => {
-    toast({
-      title: "Adicionado aos favoritos",
-      description: `${type === 'salon' ? 'Salão' : 'Profissional'} foi adicionado aos favoritos`,
-    });
-  };
-  
-  const filteredSalons = salonData.filter(salon => 
-    salon.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salon.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    salon.services.some(service => service.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-  
-  const filteredProfessionals = professionalData.filter(pro => 
-    pro.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pro.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pro.salon.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    pro.specialties.some(specialty => specialty.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-  
-  const sortedSalons = [...filteredSalons].sort((a, b) => {
-    if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'distance') return parseFloat(a.distance) - parseFloat(b.distance);
-    if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
-    return 0;
-  });
-  
-  const sortedProfessionals = [...filteredProfessionals].sort((a, b) => {
-    if (sortBy === 'rating') return b.rating - a.rating;
-    if (sortBy === 'reviews') return b.reviewCount - a.reviewCount;
-    return 0;
-  });
-  
-  const containerAnimation = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-  
-  const itemAnimation = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
+    navigate(`/appointments/new/${type}/${id}`);
   };
   
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex min-h-screen bg-background">
       <Sidebar>
-        <SidebarMenu />
-        <div className="mt-auto mb-4 px-3">
+        <div className="p-4">
           <ThemeToggle />
         </div>
       </Sidebar>
       
-      <main className="md:pl-[240px] pt-16 pb-20 md:pb-12 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          <motion.div
-            variants={containerAnimation}
-            initial="hidden"
-            animate="show"
-            className="space-y-8"
-          >
-            <motion.div
-              variants={itemAnimation}
-              className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
+      <main className="flex-1 overflow-auto">
+        <div className="responsive-container py-6">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">Buscar Serviços</h1>
+          
+          <form onSubmit={handleSearch} className="flex mb-6 gap-2">
+            <div className="relative flex-grow">
+              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Buscar salões, serviços ou profissionais..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button type="submit">Buscar</Button>
+          </form>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Button 
+              variant={activeFilter === 'proximidade' ? "default" : "outline"} 
+              size="sm"
+              onClick={() => handleFilterClick('proximidade')}
+              className="flex gap-1 items-center"
             >
-              <div>
-                <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-gray-50">
-                  Encontrar Salões e Profissionais
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
-                  Descubra os melhores salões e profissionais da sua região
-                </p>
-              </div>
-            </motion.div>
+              <MapPin size={14} />
+              <span>Proximidade</span>
+            </Button>
+            <Button 
+              variant={activeFilter === 'avaliacao' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleFilterClick('avaliacao')}
+              className="flex gap-1 items-center"
+            >
+              <Star size={14} />
+              <span>Melhor avaliação</span>
+            </Button>
+            <Button 
+              variant={activeFilter === 'disponibilidade' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleFilterClick('disponibilidade')}
+              className="flex gap-1 items-center"
+            >
+              <Clock size={14} />
+              <span>Disponibilidade</span>
+            </Button>
+            <Button 
+              variant={activeFilter === 'servicos' ? "default" : "outline"}
+              size="sm"
+              onClick={() => handleFilterClick('servicos')}
+              className="flex gap-1 items-center"
+            >
+              <Scissors size={14} />
+              <span>Serviços</span>
+            </Button>
+            <Button 
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setActiveFilter(null);
+                toast({
+                  title: "Filtros removidos",
+                  description: "Todos os filtros foram removidos"
+                });
+              }}
+              className="flex gap-1 items-center"
+            >
+              <Filter size={14} />
+              <span>Limpar filtros</span>
+            </Button>
+          </div>
+          
+          <Tabs defaultValue="saloes" className="mb-6">
+            <TabsList className="mb-4">
+              <TabsTrigger value="saloes">Salões</TabsTrigger>
+              <TabsTrigger value="profissionais">Profissionais</TabsTrigger>
+              <TabsTrigger value="servicos">Serviços</TabsTrigger>
+            </TabsList>
             
-            <motion.div variants={itemAnimation} className="space-y-4">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="relative flex-1">
-                  <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-                  <Input
-                    type="text"
-                    placeholder="Buscar por nome, serviço ou localização..."
-                    className="pl-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex md:w-auto w-full">
-                      <Filter className="h-4 w-4 mr-2" />
-                      Ordenar por
-                      <ChevronDown className="h-4 w-4 ml-2" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => setSortBy('rating')}>
-                      Melhor avaliação
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('distance')}>
-                      Menor distância
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('reviews')}>
-                      Mais avaliações
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            <TabsContent value="saloes" className="mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {salons.map((salon) => (
+                  <Card key={salon.id} className="modern-card hover-lift">
+                    <CardHeader className="p-4 pb-2">
+                      <div className="flex items-start justify-between">
+                        <Avatar className="h-12 w-12 rounded-md">
+                          <AvatarImage src={salon.image} alt={salon.name} />
+                          <AvatarFallback>{salon.name.substring(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                          <span className="text-sm font-medium">{salon.rating}</span>
+                          <span className="text-xs text-muted-foreground ml-1">({salon.reviews})</span>
+                        </div>
+                      </div>
+                      <CardTitle className="mt-2 text-lg">{salon.name}</CardTitle>
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        <span>{salon.location}</span>
+                        <span className="mx-1">•</span>
+                        <span>{salon.distance}</span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 pb-2">
+                      <div className="flex flex-wrap gap-1 my-2">
+                        {salon.services.map((service, idx) => (
+                          <Badge key={idx} variant="outline" className="text-xs">
+                            {service}
+                          </Badge>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm font-medium">{salon.price}</span>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>{salon.availability}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-2">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => handleBooking(salon.id, 'salon')}
+                      >
+                        Agendar
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-              
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-2 w-full md:w-1/3 mb-6">
-                  <TabsTrigger value="salons">Salões</TabsTrigger>
-                  <TabsTrigger value="professionals">Profissionais</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="salons" className="mt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sortedSalons.map((salon) => (
-                      <SalonCard 
-                        key={salon.id}
-                        salon={salon}
-                        onBook={() => handleBooking(salon.id, 'salon')}
-                        onFavorite={() => handleFavorite(salon.id, 'salon')}
-                      />
-                    ))}
-                    
-                    {sortedSalons.length === 0 && (
-                      <div className="col-span-2 text-center py-10">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          Nenhum salão encontrado com esses critérios.
-                        </p>
+            </TabsContent>
+            
+            <TabsContent value="profissionais" className="mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {professionals.map((professional) => (
+                  <Card key={professional.id} className="modern-card hover-lift">
+                    <CardHeader className="p-4 pb-2">
+                      <div className="flex items-start justify-between">
+                        <Avatar className="h-12 w-12 rounded-full">
+                          <AvatarImage src={professional.image} alt={professional.name} />
+                          <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex items-center">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                          <span className="text-sm font-medium">{professional.rating}</span>
+                          <span className="text-xs text-muted-foreground ml-1">({professional.reviews})</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="professionals" className="mt-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sortedProfessionals.map((professional) => (
-                      <ProfessionalCard 
-                        key={professional.id}
-                        professional={professional}
-                        onBook={() => handleBooking(professional.id, 'professional')}
-                        onFavorite={() => handleFavorite(professional.id, 'professional')}
-                      />
-                    ))}
-                    
-                    {sortedProfessionals.length === 0 && (
-                      <div className="col-span-2 text-center py-10">
-                        <p className="text-gray-500 dark:text-gray-400">
-                          Nenhum profissional encontrado com esses critérios.
-                        </p>
+                      <CardTitle className="mt-2 text-lg">{professional.name}</CardTitle>
+                      <CardDescription className="text-sm">{professional.specialty}</CardDescription>
+                      <div className="flex items-center text-sm text-muted-foreground mt-1">
+                        <span>{professional.salon}</span>
                       </div>
-                    )}
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </motion.div>
-          </motion.div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 pb-2">
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm font-medium">{professional.price}</span>
+                        <div className="flex items-center text-sm text-muted-foreground">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>{professional.availability}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-2">
+                      <Button 
+                        className="w-full" 
+                        onClick={() => handleBooking(professional.id, 'professional')}
+                      >
+                        Agendar
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="servicos" className="mt-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { id: 1, name: 'Corte de Cabelo', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 50', duration: '45 min' },
+                  { id: 2, name: 'Coloração', image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 120', duration: '2h' },
+                  { id: 3, name: 'Manicure', image: 'https://images.unsplash.com/photo-1604902396830-aca29e19b067?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 35', duration: '40 min' },
+                  { id: 4, name: 'Pedicure', image: 'https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 45', duration: '45 min' },
+                  { id: 5, name: 'Massagem', image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 90', duration: '1h' },
+                  { id: 6, name: 'Depilação', image: 'https://images.unsplash.com/photo-1615396899439-4c3e603abad2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 40', duration: '30 min' }
+                ].map((service) => (
+                  <Card key={service.id} className="modern-card hover-lift relative overflow-hidden">
+                    <div className="absolute inset-0">
+                      <img
+                        src={service.image}
+                        alt={service.name}
+                        className="w-full h-full object-cover opacity-30"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-background/40" />
+                    </div>
+                    <div className="relative">
+                      <CardHeader className="p-4 pb-2">
+                        <CardTitle className="text-lg">{service.name}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-4 pt-0 pb-2">
+                        <div className="flex justify-between mt-2">
+                          <span className="text-sm font-medium">{service.price}</span>
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>{service.duration}</span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="p-4 pt-2">
+                        <Button 
+                          className="w-full" 
+                          onClick={() => {
+                            toast({
+                              title: "Serviço selecionado",
+                              description: `Serviço: ${service.name}`
+                            });
+                            navigate(`/search?service=${service.id}`);
+                          }}
+                        >
+                          Encontrar profissionais
+                        </Button>
+                      </CardFooter>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
-      
-      <BottomNav />
     </div>
-  );
-};
-
-interface SalonCardProps {
-  salon: typeof salonData[0];
-  onBook: () => void;
-  onFavorite: () => void;
-}
-
-const SalonCard: React.FC<SalonCardProps> = ({ salon, onBook, onFavorite }) => {
-  return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md border-none dark:bg-gray-800">
-      <div className="relative">
-        <img 
-          src={salon.image} 
-          alt={salon.name} 
-          className="w-full h-48 object-cover"
-        />
-        {salon.featured && (
-          <div className="absolute top-2 right-2 bg-salon-500 text-white text-xs px-2 py-1 rounded-full flex items-center">
-            <Sparkles className="h-3 w-3 mr-1" />
-            Destaque
-          </div>
-        )}
-      </div>
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <h3 className="text-lg font-bold">{salon.name}</h3>
-          <div className="flex items-center text-sm">
-            <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
-            <span className="font-medium">{salon.rating}</span>
-            <span className="text-gray-500 dark:text-gray-400 ml-1">({salon.reviewCount})</span>
-          </div>
-        </div>
-        
-        <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mb-2">
-          <MapPin className="h-4 w-4 mr-1" />
-          <span>{salon.address} • {salon.distance}</span>
-        </div>
-        
-        <div className="flex flex-wrap gap-1 mb-4">
-          {salon.services.map((service, idx) => (
-            <Badge key={idx} variant="secondary" className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-              {service}
-            </Badge>
-          ))}
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button 
-            className="flex-1 bg-salon-500 hover:bg-salon-600 text-white"
-            onClick={onBook}
-          >
-            <Calendar className="h-4 w-4 mr-2" />
-            Agendar
-          </Button>
-          <Button 
-            variant="outline" 
-            className="border-salon-500 text-salon-500 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-700"
-            onClick={onFavorite}
-          >
-            Favoritar
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-interface ProfessionalCardProps {
-  professional: typeof professionalData[0];
-  onBook: () => void;
-  onFavorite: () => void;
-}
-
-const ProfessionalCard: React.FC<ProfessionalCardProps> = ({ professional, onBook, onFavorite }) => {
-  return (
-    <Card className="overflow-hidden transition-all duration-300 hover:shadow-md border-none dark:bg-gray-800">
-      <div className="flex">
-        <div className="w-1/3">
-          <img 
-            src={professional.image} 
-            alt={professional.name} 
-            className="w-full h-full object-cover"
-          />
-        </div>
-        <CardContent className="p-4 w-2/3">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="text-lg font-bold">{professional.name}</h3>
-            <div className="flex items-center text-sm">
-              <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" />
-              <span className="font-medium">{professional.rating}</span>
-              <span className="text-gray-500 dark:text-gray-400 ml-1">({professional.reviewCount})</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center mb-1">
-            <Badge className="bg-salon-100 text-salon-800 dark:bg-salon-900 dark:text-salon-200 border-none">
-              {professional.role}
-            </Badge>
-          </div>
-          
-          <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center mb-2">
-            <Scissors className="h-4 w-4 mr-1" />
-            <span>{professional.salon}</span>
-          </div>
-          
-          <div className="flex flex-wrap gap-1 mb-4">
-            {professional.specialties.map((specialty, idx) => (
-              <Badge key={idx} variant="outline" className="text-xs">
-                {specialty}
-              </Badge>
-            ))}
-          </div>
-          
-          <div className="flex space-x-2">
-            <Button 
-              className="flex-1 bg-salon-500 hover:bg-salon-600 text-white"
-              onClick={onBook}
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Agendar
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-salon-500 text-salon-500 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-700"
-              onClick={onFavorite}
-            >
-              Favoritar
-            </Button>
-          </div>
-        </CardContent>
-      </div>
-    </Card>
   );
 };
 

@@ -93,7 +93,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -123,6 +123,32 @@
   
   .button-glow {
     box-shadow: 0 0 15px theme('colors.salon.500');
+  }
+  
+  /* Responsive utilities */
+  .responsive-container {
+    @apply w-full px-4 sm:px-6 md:px-8 lg:px-12 max-w-7xl mx-auto;
+  }
+  
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  /* Animation utilities */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-lg;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md hover:bg-opacity-95;
   }
 }
 
@@ -171,4 +197,79 @@ input:-webkit-autofill:active {
 
 .slide-underline:hover::after {
   @apply scale-x-100 origin-bottom-left;
+}
+
+/* Responsive layout improvements */
+@media (max-width: 768px) {
+  .responsive-padding {
+    @apply px-4 py-3;
+  }
+  
+  .responsive-text {
+    @apply text-sm;
+  }
+  
+  .responsive-heading {
+    @apply text-xl;
+  }
+}
+
+@media (min-width: 769px) {
+  .responsive-padding {
+    @apply px-6 py-4;
+  }
+  
+  .responsive-text {
+    @apply text-base;
+  }
+  
+  .responsive-heading {
+    @apply text-2xl;
+  }
+}
+
+/* Modern card design */
+.modern-card {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300;
+  @apply hover:shadow-lg border border-transparent hover:border-gray-200 dark:hover:border-gray-700;
+}
+
+/* Enhanced dialog styles */
+.enhanced-dialog {
+  @apply bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700;
+  @apply p-6 max-w-md w-full mx-auto;
+}
+
+/* Button variants */
+.btn-primary {
+  @apply bg-salon-500 hover:bg-salon-600 text-white font-medium py-2 px-4 rounded-lg;
+  @apply transition-colors duration-200 focus:ring-2 focus:ring-salon-500/50 focus:outline-none;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg;
+  @apply dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600;
+  @apply transition-colors duration-200 focus:ring-2 focus:ring-gray-500/30 focus:outline-none;
+}
+
+.btn-outline {
+  @apply border border-salon-500 text-salon-500 bg-transparent hover:bg-salon-500/10 font-medium py-2 px-4 rounded-lg;
+  @apply transition-colors duration-200 focus:ring-2 focus:ring-salon-500/50 focus:outline-none;
+}
+
+/* Menu animations */
+.menu-enter {
+  @apply opacity-0 -translate-y-2;
+}
+
+.menu-enter-active {
+  @apply opacity-100 translate-y-0 transition-all duration-200;
+}
+
+.menu-exit {
+  @apply opacity-100 translate-y-0;
+}
+
+.menu-exit-active {
+  @apply opacity-0 -translate-y-2 transition-all duration-200;
 }
