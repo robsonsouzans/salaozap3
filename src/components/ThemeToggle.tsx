@@ -3,6 +3,7 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useToast } from "@/hooks/use-toast";
+import { motion } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -20,17 +21,24 @@ export function ThemeToggle() {
   
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      className="rounded-full border-sidebar-accent transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
       aria-label="Alternar tema"
     >
-      {theme === "light" ? (
-        <Moon className="h-5 w-5" />
-      ) : (
-        <Sun className="h-5 w-5" />
-      )}
+      <motion.div
+        initial={{ rotate: 0 }}
+        animate={{ rotate: theme === "light" ? 0 : 180 }}
+        transition={{ duration: 0.5, type: "spring", stiffness: 120 }}
+        className="relative h-5 w-5"
+      >
+        {theme === "light" ? (
+          <Sun className="absolute h-5 w-5 transform rotate-0 transition-all" />
+        ) : (
+          <Moon className="absolute h-5 w-5 transform rotate-180 transition-all" />
+        )}
+      </motion.div>
     </Button>
   );
 }
