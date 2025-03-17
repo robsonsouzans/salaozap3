@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Scissors } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
@@ -23,12 +22,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-  DialogClose,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 
-// Mock data for services
 const mockServices = [
   { id: 1, name: 'Corte Feminino', price: 120, duration: 60, category: 'Cabelo' },
   { id: 2, name: 'Corte Masculino', price: 80, duration: 45, category: 'Cabelo' },
@@ -245,7 +241,6 @@ const ServicesPage = () => {
   const [services, setServices] = useState(mockServices);
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Dialog state
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
@@ -267,7 +262,6 @@ const ServicesPage = () => {
   
   const saveService = (serviceData) => {
     if (serviceData.id) {
-      // Edit existing service
       setServices(prev => 
         prev.map(service => 
           service.id === serviceData.id ? serviceData : service
@@ -278,7 +272,6 @@ const ServicesPage = () => {
         description: `${serviceData.name} foi atualizado com sucesso.`
       });
     } else {
-      // Add new service
       const newService = {
         ...serviceData,
         id: Date.now()
@@ -402,7 +395,6 @@ const ServicesPage = () => {
       
       <BottomNav />
       
-      {/* Service Form Dialog */}
       <ServiceFormDialog
         isOpen={showAddEditDialog}
         onClose={() => setShowAddEditDialog(false)}
@@ -410,7 +402,6 @@ const ServicesPage = () => {
         onSave={saveService}
       />
       
-      {/* Delete Confirmation Dialog */}
       <DeleteConfirmDialog
         isOpen={showDeleteDialog}
         onClose={() => setShowDeleteDialog(false)}

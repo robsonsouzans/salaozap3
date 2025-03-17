@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Globe, Instagram, Facebook, Google, MessageSquare } from 'lucide-react';
+import { Globe, Instagram, Facebook, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -164,7 +163,7 @@ const IntegrationsSettings: React.FC = () => {
           />
           
           <SettingItem
-            icon={Google}
+            icon={Globe}
             title="Google Meu Negócio"
             description="Permite que clientes encontrem seu salão no Google Maps e façam agendamentos"
             connected={integrations.google.connected}
