@@ -23,6 +23,13 @@ import EmployeesPage from '@/pages/employees/EmployeesPage';
 import SalonsListPage from '@/pages/salons/SalonsListPage';
 import SalonDetailPage from '@/pages/salons/SalonDetailPage';
 import NotFound from '@/pages/NotFound';
+import FinancesPage from '@/pages/finances/FinancesPage';
+import ReviewsPage from '@/pages/reviews/ReviewsPage';
+import StatisticsPage from '@/pages/statistics/StatisticsPage';
+import MessagesPage from '@/pages/messages/MessagesPage';
+import AppointmentsCalendarPage from '@/pages/appointments/AppointmentsCalendarPage';
+import AppointmentsListPage from '@/pages/appointments/AppointmentsListPage';
+import AppointmentsConfirmationsPage from '@/pages/appointments/AppointmentsConfirmationsPage';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
 
@@ -70,11 +77,36 @@ function App() {
               } 
             />
             
+            {/* Appointments routes */}
             <Route 
               path="/appointments" 
               element={
                 <ProtectedRoute>
                   <Appointments />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/calendar" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsCalendarPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/list" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsListPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/confirmations" 
+              element={
+                <ProtectedRoute>
+                  <AppointmentsConfirmationsPage />
                 </ProtectedRoute>
               } 
             />
@@ -93,6 +125,54 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Finances routes */}
+            <Route 
+              path="/finances" 
+              element={
+                <ProtectedRoute>
+                  <FinancesPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/finances/:section" 
+              element={
+                <ProtectedRoute>
+                  <FinancesPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Reviews routes */}
+            <Route 
+              path="/reviews" 
+              element={
+                <ProtectedRoute>
+                  <ReviewsPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Statistics routes */}
+            <Route 
+              path="/statistics" 
+              element={
+                <ProtectedRoute>
+                  <StatisticsPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Messages routes */}
+            <Route 
+              path="/messages" 
+              element={
+                <ProtectedRoute>
+                  <MessagesPage />
                 </ProtectedRoute>
               } 
             />
