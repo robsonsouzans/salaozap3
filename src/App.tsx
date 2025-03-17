@@ -20,6 +20,8 @@ import PaymentMethodsSettings from '@/pages/settings/PaymentMethodsSettings';
 import IntegrationsSettings from '@/pages/settings/IntegrationsSettings';
 import ServicesPage from '@/pages/services/ServicesPage';
 import EmployeesPage from '@/pages/employees/EmployeesPage';
+import SalonsListPage from '@/pages/salons/SalonsListPage';
+import SalonDetailPage from '@/pages/salons/SalonDetailPage';
 import NotFound from '@/pages/NotFound';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
@@ -56,6 +58,8 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/salons" element={<SalonsListPage />} />
+            <Route path="/salons/:id" element={<SalonDetailPage />} />
             
             <Route 
               path="/dashboard" 
