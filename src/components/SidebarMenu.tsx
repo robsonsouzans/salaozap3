@@ -7,7 +7,7 @@ import {
   Clock, MapPin, Calendar, 
   DollarSign, ChevronDown, ChevronRight,
   BarChart2, Bell, MessageSquare, Heart,
-  Star, FileText, Home, Search
+  Star, FileText, Home
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser } from '@/lib/auth';
