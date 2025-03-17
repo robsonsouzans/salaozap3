@@ -175,7 +175,6 @@ const SidebarMenu = () => {
           title="Configurações" 
           path="/settings"
         >
-          <SubMenuItem title="Geral" path="/settings" />
           <SubMenuItem title="Perfil do Salão" path="/settings/profile" />
           <SubMenuItem title="Horários de funcionamento" path="/settings/business-hours" />
           <SubMenuItem title="Métodos de pagamento" path="/settings/payment-methods" />
@@ -233,7 +232,7 @@ const SidebarMenu = () => {
           title="Configurações" 
           path="/settings"
         >
-          <SubMenuItem title="Perfil" path="/settings" />
+          <SubMenuItem title="Perfil" path="/settings/profile" />
           <SubMenuItem title="Métodos de pagamento" path="/settings/payment-methods" />
           <SubMenuItem title="Notificações" path="/settings/notifications" />
           <SubMenuItem title="Segurança" path="/settings/security" />
@@ -288,7 +287,7 @@ const SidebarMenu = () => {
         title="Configurações" 
         path="/settings"
       >
-        <SubMenuItem title="Sistema" path="/settings" />
+        <SubMenuItem title="Sistema" path="/settings/profile" />
         <SubMenuItem title="Integrações" path="/settings/integrations" />
         <SubMenuItem title="Segurança" path="/settings/security" />
       </MenuItem>

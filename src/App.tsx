@@ -18,6 +18,7 @@ import SecuritySettings from '@/pages/settings/SecuritySettings';
 import BusinessHoursSettings from '@/pages/settings/BusinessHoursSettings';
 import PaymentMethodsSettings from '@/pages/settings/PaymentMethodsSettings';
 import IntegrationsSettings from '@/pages/settings/IntegrationsSettings';
+import ProfileSettings from '@/pages/settings/ProfileSettings';
 import ServicesPage from '@/pages/services/ServicesPage';
 import EmployeesPage from '@/pages/employees/EmployeesPage';
 import SalonsListPage from '@/pages/salons/SalonsListPage';
@@ -188,6 +189,14 @@ function App() {
                 } 
               />
               <Route 
+                path="profile" 
+                element={
+                  <ProtectedRoute>
+                    <ProfileSettings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
                 path="appearance" 
                 element={
                   <ProtectedRoute>
@@ -254,8 +263,8 @@ function App() {
                 <ProtectedRoute>
                   <EmployeesPage />
                 </ProtectedRoute>
-              } 
-            />
+                } 
+                />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

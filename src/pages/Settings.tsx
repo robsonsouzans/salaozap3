@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import GeneralSettings from './settings/GeneralSettings';
+import ProfileSettings from './settings/ProfileSettings';
 
 const Settings: React.FC = () => {
-  return <GeneralSettings />;
+  return <ProfileSettings />;
 };
 
 export default Settings;
