@@ -1,25 +1,29 @@
 
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { 
   MapPin, Clock, Phone, Calendar, 
   Star, Heart, ChevronLeft, Scissors, 
-  Users, DollarSign, Check
+  Users, DollarSign, Check, CalendarDays,
+  Camera, MessageSquare, Info
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import SidebarMenu from '@/components/SidebarMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { getCurrentUser } from '@/lib/auth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ServiceType {
   id: string;
@@ -62,6 +66,9 @@ const SalonDetailPage: React.FC = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Mock data for demonstration
   const salon = {
@@ -76,8 +83,11 @@ const SalonDetailPage: React.FC = () => {
     images: [
       'https://images.unsplash.com/photo-1600948836101-f9ffda59d250?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2036&q=80',
       'https://images.unsplash.com/photo-1560066984-138dadb4c035?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1674&q=80',
-      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80'
-    ]
+      'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
+      'https://images.unsplash.com/photo-1562322140-8baeececf3df?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1769&q=80',
+      'https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80'
+    ],
+    amenities: ['Wi-Fi Grátis', 'Estacionamento', 'Cafezinho', 'Área Kids', 'Acessível']
   };
   
   const services: ServiceType[] = [
@@ -185,6 +195,11 @@ const SalonDetailPage: React.FC = () => {
       userImage: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80'
     }
   ];
+
+  const handleBookNow = () => {
+    // Navigate to the appointment page with the salon ID
+    navigate(`/appointments/new/salon/${id}`);
+  };
   
   const handleBookAppointment = () => {
     if (!selectedService || !selectedEmployee || !selectedTimeSlot || !date) {
@@ -196,23 +211,28 @@ const SalonDetailPage: React.FC = () => {
       return;
     }
     
+    setIsLoading(true);
+    
     // In a real app, you would make an API call here
-    toast({
-      title: "Agendamento realizado!",
-      description: "Você receberá uma confirmação em breve.",
-    });
-    
-    setBookingDialogOpen(false);
-    
-    // Reset selections
-    setSelectedService(null);
-    setSelectedEmployee(null);
-    setSelectedTimeSlot(null);
-    
-    // Navigate to appointments page
     setTimeout(() => {
-      navigate('/appointments');
-    }, 1500);
+      toast({
+        title: "Agendamento realizado!",
+        description: "Você receberá uma confirmação em breve.",
+      });
+      
+      setBookingDialogOpen(false);
+      setIsLoading(false);
+      
+      // Reset selections
+      setSelectedService(null);
+      setSelectedEmployee(null);
+      setSelectedTimeSlot(null);
+      
+      // Navigate to appointments page
+      setTimeout(() => {
+        navigate('/appointments');
+      }, 1500);
+    }, 1000);
   };
   
   const containerAnimation = {
@@ -228,6 +248,14 @@ const SalonDetailPage: React.FC = () => {
   const itemAnimation = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 },
+  };
+
+  const nextImage = () => {
+    setActiveImageIndex((prev) => (prev === salon.images.length - 1 ? 0 : prev + 1));
+  };
+
+  const prevImage = () => {
+    setActiveImageIndex((prev) => (prev === 0 ? salon.images.length - 1 : prev - 1));
   };
   
   return (
@@ -247,47 +275,81 @@ const SalonDetailPage: React.FC = () => {
             animate="show"
             className="space-y-8"
           >
-            <motion.div variants={itemAnimation} className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => navigate('/salons')}
-                className="p-1"
+            <motion.div variants={itemAnimation} className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => navigate('/salons')}
+                  className="p-1"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-gray-50">
+                  {salon.name}
+                </h1>
+              </div>
+              
+              <Button
+                variant={isFavorite ? "salon" : "salon-outline"}
+                size="sm"
+                onClick={() => setIsFavorite(!isFavorite)}
+                className="hidden md:flex"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <Heart className={`h-4 w-4 mr-1 ${isFavorite ? 'fill-white' : ''}`} />
+                {isFavorite ? 'Favoritado' : 'Favoritar'}
               </Button>
-              <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-gray-50">
-                {salon.name}
-              </h1>
             </motion.div>
             
             <motion.div variants={itemAnimation} className="w-full">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[300px] md:h-[400px]">
-                <div className="md:col-span-2 h-full">
+              <div className="relative overflow-hidden rounded-xl">
+                {/* Main gallery preview */}
+                <div className="group relative h-[300px] md:h-[400px] cursor-pointer" onClick={() => setIsGalleryOpen(true)}>
                   <img
                     src={salon.images[0]}
                     alt={salon.name}
                     className="w-full h-full object-cover rounded-lg"
                   />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <div className="bg-black/70 text-white px-4 py-2 rounded-full flex items-center">
+                      <Camera className="h-4 w-4 mr-1.5" />
+                      <span>Ver todas as fotos ({salon.images.length})</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="hidden md:grid grid-rows-2 gap-4">
-                  <img
-                    src={salon.images[1]}
-                    alt={salon.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                  <img
-                    src={salon.images[2]}
-                    alt={salon.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
+                
+                {/* Thumbnail previews */}
+                <div className="hidden md:grid grid-cols-4 gap-2 mt-2">
+                  {salon.images.slice(1, 5).map((image, index) => (
+                    <div 
+                      key={index} 
+                      className="relative h-24 cursor-pointer rounded overflow-hidden"
+                      onClick={() => {
+                        setActiveImageIndex(index + 1);
+                        setIsGalleryOpen(true);
+                      }}
+                    >
+                      <img
+                        src={image}
+                        alt={`${salon.name} - ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      {index === 3 && salon.images.length > 5 && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <span className="text-white font-medium">
+                            +{salon.images.length - 5} fotos
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
               
-              <div className="flex justify-between items-center mt-4">
-                <div className="flex flex-wrap md:flex-nowrap gap-4 items-center">
+              <div className="mt-6 space-y-6">
+                <div className="flex flex-wrap gap-4 items-center">
                   <div className="flex items-center gap-1">
-                    <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
                     <span className="font-medium">{salon.rating}</span>
                     <span className="text-gray-500">({salon.reviewCount} avaliações)</span>
                   </div>
@@ -308,218 +370,75 @@ const SalonDetailPage: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className="hidden md:flex"
-                  >
-                    <Heart className={`h-4 w-4 mr-1 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
-                    {isFavorite ? 'Favoritado' : 'Favoritar'}
-                  </Button>
+                <div className="flex flex-wrap gap-2">
+                  {salon.amenities.map((amenity, index) => (
+                    <Badge key={index} variant="secondary" className="bg-salon-50 text-salon-600 dark:bg-salon-950/20 dark:text-salon-400">
+                      {amenity}
+                    </Badge>
+                  ))}
                 </div>
+                
+                <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
+                  {salon.description}
+                </p>
               </div>
+            </motion.div>
+            
+            <motion.div variants={itemAnimation} className="flex gap-3">
+              <Button size="lg" variant="salon" className="flex-1" onClick={handleBookNow}>
+                <Calendar className="h-5 w-5 mr-2" />
+                Agendar Agora
+              </Button>
               
-              <p className="mt-4 text-gray-700 dark:text-gray-300">
-                {salon.description}
-              </p>
+              <Button size="lg" variant="outline" className="flex gap-2">
+                <MessageSquare className="h-5 w-5" />
+                <span className="hidden sm:inline">Enviar Mensagem</span>
+                <span className="sm:hidden">Mensagem</span>
+              </Button>
+              
+              <Button variant="outline" size="icon" onClick={() => setIsFavorite(!isFavorite)} className="md:hidden">
+                <Heart className={`h-5 w-5 ${isFavorite ? 'fill-salon-500 text-salon-500' : ''}`} />
+              </Button>
             </motion.div>
             
             <motion.div variants={itemAnimation}>
-              <Dialog open={bookingDialogOpen} onOpenChange={setBookingDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button size="lg" className="w-full md:w-auto">
-                    <Calendar className="h-5 w-5 mr-2" />
-                    Agendar Serviço
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Agendar Serviço em {salon.name}</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-4">
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">1. Selecione o serviço</h3>
-                      <div className="space-y-3">
-                        {services.map((service) => (
-                          <div
-                            key={service.id}
-                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                              selectedService === service.id
-                                ? 'border-salon-500 bg-salon-50 dark:bg-salon-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                            }`}
-                            onClick={() => setSelectedService(service.id)}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h4 className="font-medium">{service.name}</h4>
-                                <p className="text-sm text-gray-500">{service.description}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-medium">{service.price}</p>
-                                <div className="flex items-center text-sm text-gray-500">
-                                  <Clock className="h-3.5 w-3.5 mr-1" />
-                                  {service.duration}
-                                </div>
-                              </div>
-                            </div>
-                            {selectedService === service.id && (
-                              <div className="mt-2 text-salon-500">
-                                <Check className="h-5 w-5" />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      
-                      <h3 className="text-lg font-medium mb-3 mt-6">2. Selecione o profissional</h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
-                        {employees.map((employee) => (
-                          <div
-                            key={employee.id}
-                            className={`p-3 border rounded-lg cursor-pointer transition-colors text-center ${
-                              selectedEmployee === employee.id
-                                ? 'border-salon-500 bg-salon-50 dark:bg-salon-900/20'
-                                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-                            }`}
-                            onClick={() => setSelectedEmployee(employee.id)}
-                          >
-                            <div className="w-16 h-16 mx-auto mb-2 relative">
-                              <img
-                                src={employee.image}
-                                alt={employee.name}
-                                className="w-full h-full object-cover rounded-full"
-                              />
-                              {selectedEmployee === employee.id && (
-                                <div className="absolute -bottom-1 -right-1 bg-salon-500 text-white rounded-full p-0.5">
-                                  <Check className="h-4 w-4" />
-                                </div>
-                              )}
-                            </div>
-                            <h4 className="font-medium text-sm">{employee.name}</h4>
-                            <p className="text-xs text-gray-500">{employee.role}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-lg font-medium mb-3">3. Selecione a data</h3>
-                      <CalendarComponent
-                        mode="single"
-                        selected={date}
-                        onSelect={setDate}
-                        className="rounded-md border p-3 pointer-events-auto"
-                      />
-                      
-                      <h3 className="text-lg font-medium mb-3 mt-6">4. Selecione o horário</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {timeSlots.map((slot) => (
-                          <button
-                            key={slot.time}
-                            disabled={!slot.available}
-                            className={`py-2 px-3 text-center rounded-md transition-colors ${
-                              !slot.available
-                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed dark:bg-gray-800'
-                                : selectedTimeSlot === slot.time
-                                ? 'bg-salon-500 text-white'
-                                : 'bg-white text-gray-700 border hover:border-salon-500 dark:bg-gray-800 dark:text-gray-200'
-                            }`}
-                            onClick={() => setSelectedTimeSlot(slot.time)}
-                          >
-                            {slot.time}
-                          </button>
-                        ))}
-                      </div>
-                      
-                      <div className="mt-6 space-y-4">
-                        <Separator />
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Serviço:</span>
-                          <span>
-                            {selectedService 
-                              ? services.find(s => s.id === selectedService)?.name 
-                              : 'Não selecionado'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Profissional:</span>
-                          <span>
-                            {selectedEmployee 
-                              ? employees.find(e => e.id === selectedEmployee)?.name 
-                              : 'Não selecionado'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Data:</span>
-                          <span>
-                            {date 
-                              ? date.toLocaleDateString('pt-BR', { 
-                                  day: '2-digit', 
-                                  month: '2-digit', 
-                                  year: 'numeric' 
-                                }) 
-                              : 'Não selecionada'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Horário:</span>
-                          <span>
-                            {selectedTimeSlot || 'Não selecionado'}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">Valor estimado:</span>
-                          <span className="font-medium text-salon-500">
-                            {selectedService 
-                              ? services.find(s => s.id === selectedService)?.price 
-                              : '-'}
-                          </span>
-                        </div>
-                        <Separator />
-                        <Button 
-                          size="lg" 
-                          className="w-full mt-4"
-                          onClick={handleBookAppointment}
-                        >
-                          Confirmar Agendamento
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </motion.div>
-            
-            <motion.div variants={itemAnimation}>
-              <Tabs defaultValue="services">
-                <TabsList className="w-full justify-start mb-6">
-                  <TabsTrigger value="services">Serviços</TabsTrigger>
-                  <TabsTrigger value="professionals">Profissionais</TabsTrigger>
-                  <TabsTrigger value="reviews">Avaliações</TabsTrigger>
+              <Tabs defaultValue="services" className="w-full">
+                <TabsList className="w-full justify-start mb-6 bg-transparent border-b dark:border-gray-800">
+                  <TabsTrigger value="services" className="data-[state=active]:border-b-2 data-[state=active]:border-salon-500 rounded-none data-[state=active]:text-salon-600 dark:data-[state=active]:text-salon-400 pb-2 -mb-[2px]">Serviços</TabsTrigger>
+                  <TabsTrigger value="professionals" className="data-[state=active]:border-b-2 data-[state=active]:border-salon-500 rounded-none data-[state=active]:text-salon-600 dark:data-[state=active]:text-salon-400 pb-2 -mb-[2px]">Profissionais</TabsTrigger>
+                  <TabsTrigger value="reviews" className="data-[state=active]:border-b-2 data-[state=active]:border-salon-500 rounded-none data-[state=active]:text-salon-600 dark:data-[state=active]:text-salon-400 pb-2 -mb-[2px]">Avaliações</TabsTrigger>
+                  <TabsTrigger value="info" className="data-[state=active]:border-b-2 data-[state=active]:border-salon-500 rounded-none data-[state=active]:text-salon-600 dark:data-[state=active]:text-salon-400 pb-2 -mb-[2px]">Informações</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="services" className="space-y-4">
                   {services.map((service) => (
-                    <Card key={service.id} className="border-none shadow-sm">
+                    <Card key={service.id} className="overflow-hidden hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
                       <CardContent className="p-5">
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <Scissors className="h-4 w-4 text-salon-500" />
+                              <div className="bg-salon-50 text-salon-600 dark:bg-salon-950/20 dark:text-salon-400 p-2 rounded-full">
+                                <Scissors className="h-4 w-4" />
+                              </div>
                               <h3 className="font-medium">{service.name}</h3>
                             </div>
                             <p className="text-sm text-gray-500">{service.description}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium">{service.price}</p>
-                            <div className="flex items-center text-sm text-gray-500">
+                            <Badge variant="outline" className="bg-salon-50 text-salon-600 border-none dark:bg-salon-950/20 dark:text-salon-400">
+                              {service.price}
+                            </Badge>
+                            <div className="flex items-center justify-end text-sm text-gray-500 mt-1">
                               <Clock className="h-3.5 w-3.5 mr-1" />
                               {service.duration}
                             </div>
                           </div>
+                        </div>
+                        
+                        <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="salon" size="sm" className="w-full" onClick={handleBookNow}>
+                            Agendar Serviço
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -528,29 +447,87 @@ const SalonDetailPage: React.FC = () => {
                 
                 <TabsContent value="professionals" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                   {employees.map((employee) => (
-                    <Card key={employee.id} className="overflow-hidden border-none shadow-sm">
-                      <div className="h-48">
+                    <Card key={employee.id} className="overflow-hidden border-none shadow-sm hover:shadow transition-shadow group">
+                      <div className="relative h-48">
                         <img
                           src={employee.image}
                           alt={employee.name}
                           className="w-full h-full object-cover"
                         />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
+                          <Button variant="salon" size="sm" className="w-full" onClick={handleBookNow}>
+                            Agendar com {employee.name.split(' ')[0]}
+                          </Button>
+                        </div>
                       </div>
                       <CardContent className="text-center p-4">
                         <h3 className="font-medium">{employee.name}</h3>
-                        <p className="text-sm text-gray-500">{employee.role}</p>
+                        <p className="text-sm text-gray-500 mb-1">{employee.role}</p>
+                        <div className="flex justify-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star 
+                              key={star} 
+                              className={`h-3.5 w-3.5 ${star <= 4 ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
+                            />
+                          ))}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
                 </TabsContent>
                 
                 <TabsContent value="reviews" className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center gap-1">
-                      <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xl font-medium">{salon.rating}</span>
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-salon-50 dark:bg-salon-950/20 p-4 rounded-xl">
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="text-3xl font-bold text-salon-600 dark:text-salon-400">{salon.rating}</div>
+                        <div className="flex">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star 
+                              key={star} 
+                              className={`h-4 w-4 ${
+                                star <= Math.floor(salon.rating) 
+                                ? 'fill-amber-400 text-amber-400' 
+                                : star <= salon.rating 
+                                ? 'fill-amber-400/50 text-amber-400/50' 
+                                : 'text-gray-300'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">{salon.reviewCount} avaliações</div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="space-y-1">
+                          {[5, 4, 3, 2, 1].map((rating) => {
+                            // Calculate percentage for each rating (mock data)
+                            const percentage = rating === 5 ? 75 : 
+                                             rating === 4 ? 20 : 
+                                             rating === 3 ? 4 : 
+                                             rating === 2 ? 1 : 0;
+                            
+                            return (
+                              <div key={rating} className="flex items-center gap-2">
+                                <div className="flex items-center">
+                                  <span className="text-xs w-3 text-right">{rating}</span>
+                                  <Star className="h-3 w-3 text-amber-400 ml-0.5" />
+                                </div>
+                                <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-salon-500" 
+                                    style={{ width: `${percentage}%` }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500">{percentage}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-gray-500">({salon.reviewCount} avaliações)</span>
+                    
+                    <Button variant="salon">Avaliar Salão</Button>
                   </div>
                   
                   {reviews.map((review) => (
@@ -558,13 +535,13 @@ const SalonDetailPage: React.FC = () => {
                       <CardContent className="p-5">
                         <div className="flex items-start gap-3">
                           {review.userImage && (
-                            <div className="flex-shrink-0 w-10 h-10">
-                              <img
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage
                                 src={review.userImage}
                                 alt={review.userName}
-                                className="w-full h-full object-cover rounded-full"
                               />
-                            </div>
+                              <AvatarFallback>{review.userName.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
                           )}
                           <div className="flex-1">
                             <div className="flex flex-wrap items-baseline gap-2 mb-1">
@@ -579,7 +556,7 @@ const SalonDetailPage: React.FC = () => {
                                   key={i}
                                   className={`h-4 w-4 ${
                                     i < review.rating
-                                      ? 'fill-yellow-400 text-yellow-400'
+                                      ? 'fill-amber-400 text-amber-400'
                                       : 'text-gray-300'
                                   }`}
                                 />
@@ -596,11 +573,145 @@ const SalonDetailPage: React.FC = () => {
                     Ver Mais Avaliações
                   </Button>
                 </TabsContent>
+                
+                <TabsContent value="info" className="space-y-6">
+                  <Card className="border-none shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Clock className="h-4 w-4 text-salon-500" />
+                        <h3 className="font-medium">Horário de Funcionamento</h3>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {[
+                          { day: 'Segunda-feira', hours: '09:00 - 20:00', isOpen: true },
+                          { day: 'Terça-feira', hours: '09:00 - 20:00', isOpen: true },
+                          { day: 'Quarta-feira', hours: '09:00 - 20:00', isOpen: true },
+                          { day: 'Quinta-feira', hours: '09:00 - 20:00', isOpen: true },
+                          { day: 'Sexta-feira', hours: '09:00 - 20:00', isOpen: true },
+                          { day: 'Sábado', hours: '09:00 - 18:00', isOpen: true },
+                          { day: 'Domingo', hours: 'Fechado', isOpen: false },
+                        ].map((day) => (
+                          <div key={day.day} className="flex justify-between items-center">
+                            <span className="font-medium">{day.day}</span>
+                            <span className={day.isOpen ? 'text-green-500' : 'text-red-500'}>
+                              {day.hours}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-none shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-1">
+                        <MapPin className="h-4 w-4 text-salon-500" />
+                        <h3 className="font-medium">Localização</h3>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="bg-gray-100 dark:bg-gray-800 h-40 rounded-lg flex items-center justify-center">
+                        <p className="text-gray-500">Mapa indisponível</p>
+                      </div>
+                      <div className="mt-4">
+                        <p className="text-gray-700 dark:text-gray-300">{salon.address}</p>
+                        <Button variant="outline" size="sm" className="mt-2">
+                          Ver no Mapa
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="border-none shadow-sm">
+                    <CardHeader>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Info className="h-4 w-4 text-salon-500" />
+                        <h3 className="font-medium">Sobre o Salão</h3>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300 mb-4">
+                        {salon.description}
+                      </p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Formas de Pagamento</h4>
+                          <p className="text-sm text-gray-500">
+                            Dinheiro, Pix, Cartão de Crédito, Cartão de Débito
+                          </p>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-1">Facilidades</h4>
+                          <p className="text-sm text-gray-500">
+                            {salon.amenities.join(', ')}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
               </Tabs>
             </motion.div>
           </motion.div>
         </div>
       </main>
+      
+      {/* Full Gallery Dialog */}
+      <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
+        <DialogContent className="sm:max-w-3xl p-0 overflow-hidden bg-black/95 border-gray-800">
+          <DialogHeader className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/80 to-transparent">
+            <DialogTitle className="text-white">
+              Fotos de {salon.name} ({activeImageIndex + 1}/{salon.images.length})
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="h-[80vh] relative">
+            <img 
+              src={salon.images[activeImageIndex]} 
+              alt={salon.name} 
+              className="w-full h-full object-contain"
+            />
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-1/2 -translate-y-1/2 left-2 text-white bg-black/50 hover:bg-black/70" 
+              onClick={prevImage}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="absolute top-1/2 -translate-y-1/2 right-2 text-white bg-black/50 hover:bg-black/70" 
+              onClick={nextImage}
+            >
+              <ChevronLeft className="h-6 w-6 transform rotate-180" />
+            </Button>
+          </div>
+          
+          <div className="bg-black p-4 overflow-x-auto whitespace-nowrap">
+            <div className="flex gap-2">
+              {salon.images.map((image, index) => (
+                <div 
+                  key={index} 
+                  className={`w-16 h-16 flex-shrink-0 cursor-pointer rounded transition-all ${activeImageIndex === index ? 'ring-2 ring-salon-500 scale-105' : 'opacity-70'}`}
+                  onClick={() => setActiveImageIndex(index)}
+                >
+                  <img 
+                    src={image} 
+                    alt={`Thumbnail ${index + 1}`} 
+                    className="w-full h-full object-cover rounded" 
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       <BottomNav />
     </div>

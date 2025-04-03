@@ -1,5 +1,7 @@
 
 import { toast } from "@/hooks/use-toast";
+import { format, addDays, isBefore, isAfter, setHours, setMinutes, getHours, getMinutes } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 export interface Service {
   id: string;
@@ -124,6 +126,19 @@ export const salons: Salon[] = [
   { id: '4', name: 'Espaço Beleza' },
 ];
 
+// Helper functions for formatting
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+};
+
+export const formatDateTime = (dateString: string, timeString: string): string => {
+  const [hours, minutes] = timeString.split(':');
+  const date = new Date(dateString);
+  date.setHours(parseInt(hours), parseInt(minutes));
+  return format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
+};
+
 // Get all appointments
 export const getAllAppointments = (): Appointment[] => {
   return [...appointments];
@@ -154,7 +169,7 @@ export const addAppointment = (appointment: Omit<Appointment, 'id'>): Appointmen
   appointments.push(newAppointment);
   toast({
     title: "Agendamento criado",
-    description: `${newAppointment.service} agendado com sucesso para ${newAppointment.date} às ${newAppointment.time}`,
+    description: `${newAppointment.service} agendado com sucesso para ${formatDateTime(newAppointment.date, newAppointment.time)}`,
   });
   
   return newAppointment;
@@ -208,6 +223,11 @@ export const getAvailableTimeSlots = (date: Date): string[] => {
   
   // Return available slots
   return businessHours.filter(time => !bookedSlots.includes(time));
+};
+
+// Get popular time slots (for recommendations)
+export const getPopularTimeSlots = (): string[] => {
+  return ['10:00', '14:00', '16:00']; // Most popular times
 };
 
 // Get services for a salon
