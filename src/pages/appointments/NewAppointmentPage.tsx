@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -38,12 +37,21 @@ import {
   getServicesForSalon,
   getSalonById,
   getServiceById,
+  getEmployeeById,
   formatDate,
-  formatDateTime
+  formatDateTime,
+  services as allServices,
+  employees as allEmployees,
+  salons as allSalons
 } from '@/lib/appointmentService';
 
 const NewAppointmentPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const path = window.location.pathname;
+  const isServiceBooking = path.includes('/appointments/new/service/');
+  const isProfessionalBooking = path.includes('/appointments/new/professional/');
+  const isSalonBooking = path.includes('/appointments/new/salon/');
+  
   const navigate = useNavigate();
   const { toast } = useToast();
   
@@ -57,28 +65,51 @@ const NewAppointmentPage: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [salon, setSalon] = useState<Salon | null>(null);
+  const [availableSalons, setAvailableSalons] = useState<Salon[]>([]);
+  const [selectedSalon, setSelectedSalon] = useState<string>('');
   const [isBookingDialogOpen, setIsBookingDialogOpen] = useState(false);
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
-      // If we have a salon ID from the URL, load salon data
-      const salonData = getSalonById(id);
-      if (salonData) {
-        setSalon(salonData);
-        // Load services for this salon
-        const salonServices = getServicesForSalon(id);
-        setServices(salonServices);
-        // Load employees for this salon
-        const salonEmployees = getEmployeesForSalon(id);
-        setEmployees(salonEmployees);
+      if (isServiceBooking) {
+        const service = getServiceById(id);
+        if (service) {
+          setSelectedService(service.id);
+          setServices(allServices);
+          setEmployees(allEmployees);
+          setStep(2);
+          setAvailableSalons(allSalons);
+        }
+      } else if (isProfessionalBooking) {
+        const employee = getEmployeeById(id);
+        if (employee) {
+          setSelectedEmployee(employee.id);
+          setEmployees([employee]);
+          setServices(allServices);
+          setStep(1);
+          setAvailableSalons(allSalons);
+        }
+      } else if (isSalonBooking) {
+        const salonData = getSalonById(id);
+        if (salonData) {
+          setSalon(salonData);
+          setSelectedSalon(salonData.id);
+          const salonServices = getServicesForSalon(id);
+          setServices(salonServices);
+          const salonEmployees = getEmployeesForSalon(id);
+          setEmployees(salonEmployees);
+        }
       }
+    } else {
+      setServices(allServices);
+      setEmployees(allEmployees);
+      setAvailableSalons(allSalons);
     }
-  }, [id]);
+  }, [id, isServiceBooking, isProfessionalBooking, isSalonBooking]);
 
   useEffect(() => {
-    // When date changes, update available time slots
     if (selectedDate) {
       const slots = getAvailableTimeSlots(selectedDate);
       setAvailableTimeSlots(slots);
@@ -86,15 +117,29 @@ const NewAppointmentPage: React.FC = () => {
     }
   }, [selectedDate]);
 
+  useEffect(() => {
+    if (selectedSalon && !salon) {
+      const salonData = getSalonById(selectedSalon);
+      if (salonData) {
+        setSalon(salonData);
+        if (!isServiceBooking && !isProfessionalBooking) {
+          const salonServices = getServicesForSalon(selectedSalon);
+          setServices(salonServices);
+          const salonEmployees = getEmployeesForSalon(selectedSalon);
+          setEmployees(salonEmployees);
+        }
+      }
+    }
+  }, [selectedSalon, salon, isServiceBooking, isProfessionalBooking]);
+
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    setSelectedTimeSlot(''); // Reset time slot when date changes
+    setSelectedTimeSlot('');
   };
 
   const handleServiceSelect = (serviceId: string) => {
     setSelectedService(serviceId);
     
-    // Auto-advance
     if (step === 1) {
       setTimeout(() => setStep(2), 300);
     }
@@ -103,16 +148,26 @@ const NewAppointmentPage: React.FC = () => {
   const handleEmployeeSelect = (employeeId: string) => {
     setSelectedEmployee(employeeId);
     
-    // Auto-advance
     if (step === 2) {
       setTimeout(() => setStep(3), 300);
+    }
+  };
+
+  const handleSalonSelect = (salonId: string) => {
+    setSelectedSalon(salonId);
+    const salonData = getSalonById(salonId);
+    if (salonData) {
+      setSalon(salonData);
+    }
+    
+    if (step === 0) {
+      setTimeout(() => setStep(1), 300);
     }
   };
 
   const handleTimeSlotSelect = (timeSlot: string) => {
     setSelectedTimeSlot(timeSlot);
     
-    // Show booking confirmation after a slight delay
     if (step === 3) {
       setTimeout(() => {
         if (selectedDate && selectedService && selectedEmployee) {
@@ -126,7 +181,6 @@ const NewAppointmentPage: React.FC = () => {
     if (step < 3) {
       setStep(step + 1);
     } else {
-      // Open booking dialog if all selections are made
       if (selectedDate && selectedTimeSlot && selectedService && selectedEmployee) {
         setIsBookingDialogOpen(true);
       } else {
@@ -151,11 +205,9 @@ const NewAppointmentPage: React.FC = () => {
     if (selectedDate && selectedTimeSlot && selectedService && selectedEmployee && salon) {
       setIsLoading(true);
       
-      // Get the selected service and employee objects
       const service = getServiceById(selectedService);
       const employee = employees.find(emp => emp.id === selectedEmployee);
       
-      // Add the new appointment
       addAppointment({
         service: service?.name || '',
         professional: employee?.name || '',
@@ -169,7 +221,6 @@ const NewAppointmentPage: React.FC = () => {
         clientName: 'Você',
       });
 
-      // Close the dialog and show success message
       setTimeout(() => {
         setIsLoading(false);
         setIsBookingDialogOpen(false);
@@ -183,7 +234,6 @@ const NewAppointmentPage: React.FC = () => {
     navigate('/appointments');
   };
 
-  // Animation variants
   const pageVariants = {
     initial: { opacity: 0, x: 10 },
     animate: { opacity: 1, x: 0 },
@@ -213,21 +263,79 @@ const NewAppointmentPage: React.FC = () => {
     exit: { opacity: 0, y: -15 }
   };
 
-  // Step indicators content
   const stepIndicators = [
     { title: "Serviço", icon: Scissors },
     { title: "Profissional", icon: User },
     { title: "Data/Hora", icon: CalendarDays },
     { title: "Confirmar", icon: Check }
   ];
-  
+
+  if (isServiceBooking || isProfessionalBooking) {
+    if (!salon) {
+      stepIndicators.unshift({ title: "Salão", icon: CalendarIcon });
+    }
+  }
+
   const currentService = services.find(s => s.id === selectedService);
   const currentEmployee = employees.find(e => e.id === selectedEmployee);
 
   const renderStepContent = () => {
+    if ((isServiceBooking || isProfessionalBooking) && !salon && step === 0) {
+      return (
+        <motion.div 
+          key="step-salon"
+          variants={stepVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="space-y-6"
+        >
+          <Card className="border-none shadow-md">
+            <CardHeader className="pb-3">
+              <CardTitle>Selecionar Salão</CardTitle>
+              <CardDescription>
+                Escolha o salão para o seu agendamento
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {availableSalons.map((salonOption) => (
+                  <motion.div 
+                    key={salonOption.id}
+                    variants={itemVariants}
+                    className={`flex items-center gap-4 p-4 rounded-xl border cursor-pointer transition-all ${
+                      selectedSalon === salonOption.id 
+                        ? 'border-salon-500 bg-salon-50 dark:bg-salon-950/20 shadow-sm' 
+                        : 'hover:border-salon-200 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+                    }`}
+                    onClick={() => handleSalonSelect(salonOption.id)}
+                  >
+                    <div className={`rounded-full p-3 ${
+                      selectedSalon === salonOption.id
+                        ? 'bg-salon-500 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                    }`}>
+                      <CalendarIcon className="h-5 w-5" />
+                    </div>
+                    
+                    <div className="flex-1">
+                      <h4 className="font-medium">{salonOption.name}</h4>
+                    </div>
+                    
+                    {selectedSalon === salonOption.id && (
+                      <Check className="h-5 w-5 text-salon-500" />
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      );
+    }
+
     switch (step) {
       case 0:
-        // Step 0: Select salon (this step is skipped if salon ID is provided in the URL)
         return (
           <motion.div 
             key="step-0"
@@ -260,7 +368,6 @@ const NewAppointmentPage: React.FC = () => {
         );
         
       case 1:
-        // Step 1: Select service
         return (
           <motion.div 
             key="step-1"
@@ -325,7 +432,6 @@ const NewAppointmentPage: React.FC = () => {
         );
         
       case 2:
-        // Step 2: Select employee
         return (
           <motion.div 
             key="step-2"
@@ -387,7 +493,6 @@ const NewAppointmentPage: React.FC = () => {
         );
         
       case 3:
-        // Step 3: Select date and time
         return (
           <motion.div 
             key="step-3"
@@ -432,7 +537,6 @@ const NewAppointmentPage: React.FC = () => {
                 <CardContent>
                   {selectedDate ? (
                     <div className="space-y-5">
-                      {/* Show suggested/popular time slots first */}
                       {popularTimeSlots.length > 0 && (
                         <div>
                           <h4 className="font-medium text-sm mb-2">Horários Recomendados:</h4>
@@ -455,10 +559,9 @@ const NewAppointmentPage: React.FC = () => {
                         </div>
                       )}
                       
-                      {/* Show all available time slots */}
-                      <div>
-                        <h4 className="font-medium text-sm mb-2">Todos os Horários:</h4>
-                        {availableTimeSlots.length > 0 ? (
+                      {availableTimeSlots.length > 0 ? (
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Todos os Horários:</h4>
                           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                             {availableTimeSlots.map(timeSlot => (
                               <Button
@@ -472,12 +575,12 @@ const NewAppointmentPage: React.FC = () => {
                               </Button>
                             ))}
                           </div>
-                        ) : (
-                          <p className="text-center py-4 text-muted-foreground">
-                            Não há horários disponíveis para esta data. Por favor, selecione outra data.
-                          </p>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <p className="text-center py-4 text-muted-foreground">
+                          Não há horários disponíveis para esta data. Por favor, selecione outra data.
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <p className="text-center py-6 text-muted-foreground">
@@ -488,13 +591,18 @@ const NewAppointmentPage: React.FC = () => {
               </Card>
             </div>
             
-            {/* Show selection summary */}
             {(selectedService || selectedEmployee || selectedDate || selectedTimeSlot) && (
               <Card className="border-none shadow-sm bg-salon-50 dark:bg-salon-950/20">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">Resumo da Seleção</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
+                  {salon && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Salão:</span>
+                      <span className="font-medium">{salon?.name}</span>
+                    </div>
+                  )}
                   {selectedService && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Serviço:</span>
@@ -520,7 +628,7 @@ const NewAppointmentPage: React.FC = () => {
                     </div>
                   )}
                 </CardContent>
-                {selectedDate && selectedTimeSlot && selectedService && selectedEmployee && (
+                {selectedDate && selectedTimeSlot && selectedService && selectedEmployee && salon && (
                   <CardFooter className="pt-0">
                     <Button className="w-full" variant="salon" onClick={() => setIsBookingDialogOpen(true)}>
                       <Check className="mr-2 h-4 w-4" /> Confirmar Agendamento
@@ -555,7 +663,6 @@ const NewAppointmentPage: React.FC = () => {
         >
           <div className="space-y-6">
             <div>
-              {/* Header with back button */}
               <div className="flex items-center mb-4">
                 <Button
                   variant="ghost"
@@ -578,10 +685,23 @@ const NewAppointmentPage: React.FC = () => {
                       </span>
                     </div>
                   )}
+                  {isServiceBooking && currentService && (
+                    <div className="flex items-center mt-1">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Serviço: {currentService.name}
+                      </span>
+                    </div>
+                  )}
+                  {isProfessionalBooking && currentEmployee && (
+                    <div className="flex items-center mt-1">
+                      <span className="text-gray-500 dark:text-gray-400">
+                        Profissional: {currentEmployee.name}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
               
-              {/* Progress indicators */}
               <div className="mb-8">
                 <div className="flex items-center justify-between">
                   {stepIndicators.map((item, idx) => {
@@ -591,7 +711,6 @@ const NewAppointmentPage: React.FC = () => {
                     
                     return (
                       <React.Fragment key={item.title}>
-                        {/* Indicator */}
                         <div className="flex flex-col items-center">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                             isActive ? 'bg-salon-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
@@ -603,7 +722,6 @@ const NewAppointmentPage: React.FC = () => {
                           </span>
                         </div>
                         
-                        {/* Connecting line */}
                         {idx < stepIndicators.length - 1 && (
                           <div className={`h-1 flex-1 mx-2 rounded ${idx < step ? 'bg-salon-500' : 'bg-gray-200 dark:bg-gray-700'}`}></div>
                         )}
@@ -621,7 +739,6 @@ const NewAppointmentPage: React.FC = () => {
         </motion.div>
       </main>
       
-      {/* Booking Confirmation Dialog */}
       <Dialog open={isBookingDialogOpen} onOpenChange={setIsBookingDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -698,7 +815,6 @@ const NewAppointmentPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Success Confirmation Dialog */}
       <Dialog open={isConfirmationDialogOpen} onOpenChange={setIsConfirmationDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -753,7 +869,6 @@ const NewAppointmentPage: React.FC = () => {
               className="flex-1" 
               onClick={() => {
                 setIsConfirmationDialogOpen(false);
-                // Reset form for a new booking
                 setSelectedService('');
                 setSelectedEmployee('');
                 setSelectedDate(new Date());

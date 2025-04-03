@@ -128,6 +128,22 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/appointments/new/service/:id" 
+              element={
+                <ProtectedRoute>
+                  <NewAppointmentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/new/professional/:id" 
+              element={
+                <ProtectedRoute>
+                  <NewAppointmentPage />
+                </ProtectedRoute>
+              } 
+            />
             
             <Route 
               path="/search" 
