@@ -1,91 +1,68 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Clock, Filter, Search, User, X } from 'lucide-react';
+import { Calendar, Clock, Filter, Search, User, X, Edit, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle 
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
-
-interface AppointmentType {
-  id: string;
-  service: string;
-  professional: string;
-  date: string;
-  time: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  salonName?: string;
-  price?: string;
-}
+import { 
+  Appointment, 
+  getAllAppointments,
+  getUpcomingAppointments,
+  getCompletedAppointments,
+  getCancelledAppointments,
+  cancelAppointment
+} from '@/lib/appointmentService';
 
 const Appointments: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [searchTerm, setSearchTerm] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [appointments, setAppointments] = useState<Record<string, Appointment[]>>({
+    upcoming: [],
+    past: [],
+    cancelled: [],
+  });
+  const [appointmentToCancel, setAppointmentToCancel] = useState<string | null>(null);
   
-  // Mock data
-  const appointments: Record<string, AppointmentType[]> = {
-    upcoming: [
-      {
-        id: '1',
-        service: 'Corte de Cabelo',
-        professional: 'Ana Silva',
-        date: '2023-12-15',
-        time: '14:30',
-        status: 'scheduled',
-        salonName: 'Salão Glamour',
-        price: 'R$ 50,00'
-      },
-      {
-        id: '2',
-        service: 'Manicure',
-        professional: 'Camila Oliveira',
-        date: '2023-12-20',
-        time: '10:00',
-        status: 'scheduled',
-        salonName: 'Bela Hair',
-        price: 'R$ 35,00'
-      },
-    ],
-    past: [
-      {
-        id: '3',
-        service: 'Corte e Barba',
-        professional: 'João Pereira',
-        date: '2023-11-10',
-        time: '16:00',
-        status: 'completed',
-        salonName: 'Barber Shop',
-        price: 'R$ 70,00'
-      },
-      {
-        id: '4',
-        service: 'Tingimento',
-        professional: 'Maria Souza',
-        date: '2023-11-05',
-        time: '13:30',
-        status: 'completed',
-        salonName: 'Salão Glamour',
-        price: 'R$ 120,00'
-      },
-    ],
-    cancelled: [
-      {
-        id: '5',
-        service: 'Hidratação',
-        professional: 'Fernanda Lima',
-        date: '2023-11-20',
-        time: '11:00',
-        status: 'cancelled',
-        salonName: 'Espaço Beleza',
-        price: 'R$ 80,00'
-      },
-    ],
+  useEffect(() => {
+    // Load appointments when the component mounts or tab changes
+    loadAppointments();
+  }, [activeTab]);
+  
+  const loadAppointments = () => {
+    setAppointments({
+      upcoming: getUpcomingAppointments(),
+      past: getCompletedAppointments(),
+      cancelled: getCancelledAppointments(),
+    });
   };
-
+  
   const formatDate = (dateString: string): string => {
     const options: Intl.DateTimeFormatOptions = { 
       day: '2-digit', 
@@ -108,7 +85,7 @@ const Appointments: React.FC = () => {
     }
   };
   
-  const filterAppointments = (appointmentList: AppointmentType[]) => {
+  const filterAppointments = (appointmentList: Appointment[]) => {
     if (!searchTerm) return appointmentList;
     
     return appointmentList.filter(
@@ -117,6 +94,21 @@ const Appointments: React.FC = () => {
         appointment.professional.toLowerCase().includes(searchTerm.toLowerCase()) ||
         appointment.salonName?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+  };
+
+  const handleCancelAppointment = (id: string) => {
+    cancelAppointment(id);
+    setAppointmentToCancel(null);
+    loadAppointments();
+  };
+  
+  const handleRescheduleAppointment = (appointment: Appointment) => {
+    // Navigate to the new appointment page with salon ID
+    if (appointment.salonId) {
+      navigate(`/appointments/new/salon/${appointment.salonId}`);
+    } else {
+      navigate('/appointments/new');
+    }
   };
   
   const containerAnimation = {
@@ -159,7 +151,10 @@ const Appointments: React.FC = () => {
                 </p>
               </div>
               
-              <Button className="bg-salon-500 hover:bg-salon-600">
+              <Button 
+                className="bg-salon-500 hover:bg-salon-600"
+                onClick={() => navigate('/appointments/new')}
+              >
                 <Calendar className="h-4 w-4 mr-2" />
                 Novo agendamento
               </Button>
@@ -278,17 +273,51 @@ const Appointments: React.FC = () => {
                                         variant="outline"
                                         size="sm"
                                         className="border-salon-500 text-salon-500 hover:bg-salon-50"
+                                        onClick={() => handleRescheduleAppointment(appointment)}
                                       >
+                                        <Edit className="h-4 w-4 mr-2" />
                                         Reagendar
                                       </Button>
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="border-red-500 text-red-500 hover:bg-red-50"
-                                      >
-                                        Cancelar
-                                      </Button>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="border-red-500 text-red-500 hover:bg-red-50"
+                                          >
+                                            <Trash2 className="h-4 w-4 mr-2" />
+                                            Cancelar
+                                          </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Cancelar Agendamento</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Tem certeza que deseja cancelar este agendamento? Esta ação não pode ser desfeita.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Manter Agendamento</AlertDialogCancel>
+                                            <AlertDialogAction 
+                                              className="bg-red-500 hover:bg-red-600"
+                                              onClick={() => handleCancelAppointment(appointment.id)}
+                                            >
+                                              Sim, cancelar
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
                                     </>
+                                  )}
+                                  {tabId === 'cancelled' && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="border-salon-500 text-salon-500 hover:bg-salon-50"
+                                      onClick={() => handleRescheduleAppointment(appointment)}
+                                    >
+                                      Reagendar
+                                    </Button>
                                   )}
                                   <Button
                                     variant="outline"
@@ -310,7 +339,10 @@ const Appointments: React.FC = () => {
                                   : 'Nenhum agendamento cancelado encontrado.'}
                             </p>
                             {tabId === 'upcoming' && (
-                              <Button className="bg-salon-500 hover:bg-salon-600">
+                              <Button 
+                                className="bg-salon-500 hover:bg-salon-600"
+                                onClick={() => navigate('/appointments/new')}
+                              >
                                 Agendar agora
                               </Button>
                             )}

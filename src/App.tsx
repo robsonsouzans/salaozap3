@@ -31,6 +31,7 @@ import MessagesPage from '@/pages/messages/MessagesPage';
 import AppointmentsCalendarPage from '@/pages/appointments/AppointmentsCalendarPage';
 import AppointmentsListPage from '@/pages/appointments/AppointmentsListPage';
 import AppointmentsConfirmationsPage from '@/pages/appointments/AppointmentsConfirmationsPage';
+import NewAppointmentPage from '@/pages/appointments/NewAppointmentPage';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
 
@@ -108,6 +109,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <AppointmentsConfirmationsPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/new" 
+              element={
+                <ProtectedRoute>
+                  <NewAppointmentPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/appointments/new/salon/:id" 
+              element={
+                <ProtectedRoute>
+                  <NewAppointmentPage />
                 </ProtectedRoute>
               } 
             />
@@ -263,8 +280,8 @@ function App() {
                 <ProtectedRoute>
                   <EmployeesPage />
                 </ProtectedRoute>
-                } 
-                />
+              } 
+            />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

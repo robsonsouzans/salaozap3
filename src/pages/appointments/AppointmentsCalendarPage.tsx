@@ -1,17 +1,76 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
 import SidebarMenu from '@/components/SidebarMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Appointment, getUpcomingAppointments } from '@/lib/appointmentService';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 const AppointmentsCalendarPage: React.FC = () => {
-  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  const navigate = useNavigate();
+  const [date, setDate] = useState<Date | undefined>(new Date());
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  
+  useEffect(() => {
+    loadAppointments();
+  }, []);
+  
+  const loadAppointments = () => {
+    const upcomingAppointments = getUpcomingAppointments();
+    setAppointments(upcomingAppointments);
+  };
+  
+  const getAppointmentsForDate = (selectedDate: Date | undefined): Appointment[] => {
+    if (!selectedDate) return [];
+    
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    return appointments.filter(apt => apt.date === dateStr);
+  };
+  
+  const handlePrevDay = () => {
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setDate(newDate.getDate() - 1);
+      setDate(newDate);
+    }
+  };
+  
+  const handleNextDay = () => {
+    if (date) {
+      const newDate = new Date(date);
+      newDate.setDate(newDate.getDate() + 1);
+      setDate(newDate);
+    }
+  };
+  
+  const handleNewAppointment = (hour: number) => {
+    if (date) {
+      navigate('/appointments/new');
+    }
+  };
+  
+  const openAppointmentDetails = (appointment: Appointment) => {
+    setSelectedAppointment(appointment);
+  };
   
   const containerAnimation = {
     hidden: { opacity: 0 },
@@ -58,7 +117,10 @@ const AppointmentsCalendarPage: React.FC = () => {
                 </p>
               </div>
               
-              <Button className="bg-salon-500 hover:bg-salon-600 text-white">
+              <Button 
+                className="bg-salon-500 hover:bg-salon-600 text-white"
+                onClick={() => navigate('/appointments/new')}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Novo agendamento
               </Button>
@@ -77,7 +139,8 @@ const AppointmentsCalendarPage: React.FC = () => {
                     mode="single"
                     selected={date}
                     onSelect={setDate}
-                    className="rounded-md border"
+                    className="rounded-md border pointer-events-auto"
+                    locale={ptBR}
                   />
                 </CardContent>
               </Card>
@@ -99,10 +162,10 @@ const AppointmentsCalendarPage: React.FC = () => {
                   </div>
                   
                   <div className="flex space-x-2">
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" onClick={handlePrevDay}>
                       <ChevronLeft className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" onClick={handleNextDay}>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
@@ -111,8 +174,16 @@ const AppointmentsCalendarPage: React.FC = () => {
                   <div className="space-y-1">
                     {Array.from({ length: 10 }).map((_, i) => {
                       const hour = 9 + i;
-                      const isBooked = [10, 14, 16].includes(hour);
-                      const isPast = new Date().getHours() > hour;
+                      const timeStr = `${hour}:00`;
+                      const appointmentsAtTime = appointments.filter(apt => 
+                        apt.date === date?.toISOString().split('T')[0] && 
+                        apt.time === timeStr
+                      );
+                      
+                      const isBooked = appointmentsAtTime.length > 0;
+                      const isPast = date && 
+                        date.getDate() === new Date().getDate() && 
+                        new Date().getHours() > hour;
                       
                       return (
                         <div
@@ -131,12 +202,16 @@ const AppointmentsCalendarPage: React.FC = () => {
                           
                           {isBooked ? (
                             <div className="flex-1">
-                              <div className="font-medium text-salon-700 dark:text-salon-300">
-                                {hour === 10 ? 'Corte Feminino' : hour === 14 ? 'Barba' : 'Manicure'}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {hour === 10 ? 'Maria Silva' : hour === 14 ? 'João Costa' : 'Ana Pereira'} - {hour === 10 ? 'Ana' : hour === 14 ? 'Carlos' : 'Patrícia'}
-                              </div>
+                              {appointmentsAtTime.map((apt, index) => (
+                                <div key={apt.id} className="mb-1 last:mb-0">
+                                  <div className="font-medium text-salon-700 dark:text-salon-300">
+                                    {apt.service}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {apt.professional} - {apt.salonName}
+                                  </div>
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <div className="flex-1 text-gray-500">
@@ -147,11 +222,67 @@ const AppointmentsCalendarPage: React.FC = () => {
                           {!isPast && (
                             <div>
                               {isBooked ? (
-                                <Button variant="outline" size="sm">
-                                  Detalhes
-                                </Button>
+                                <Sheet>
+                                  <SheetTrigger asChild>
+                                    <Button variant="outline" size="sm" onClick={() => openAppointmentDetails(appointmentsAtTime[0])}>
+                                      Detalhes
+                                    </Button>
+                                  </SheetTrigger>
+                                  <SheetContent>
+                                    <SheetHeader>
+                                      <SheetTitle>Detalhes do Agendamento</SheetTitle>
+                                      <SheetDescription>
+                                        Informações sobre seu agendamento
+                                      </SheetDescription>
+                                    </SheetHeader>
+                                    {selectedAppointment && (
+                                      <div className="py-4 space-y-4">
+                                        <div>
+                                          <h3 className="font-medium text-lg">{selectedAppointment.service}</h3>
+                                          <p className="text-sm text-gray-500">{selectedAppointment.salonName}</p>
+                                        </div>
+                                        
+                                        <div className="flex items-center">
+                                          <CalendarIcon className="h-4 w-4 mr-2" />
+                                          <span>{format(new Date(selectedAppointment.date), "dd/MM/yyyy")}</span>
+                                          <Clock className="h-4 w-4 ml-4 mr-2" />
+                                          <span>{selectedAppointment.time}</span>
+                                        </div>
+                                        
+                                        <div className="flex items-center">
+                                          <User className="h-4 w-4 mr-2" />
+                                          <span>{selectedAppointment.professional}</span>
+                                        </div>
+                                        
+                                        {selectedAppointment.price && (
+                                          <div className="font-medium mt-2">
+                                            Valor: {selectedAppointment.price}
+                                          </div>
+                                        )}
+                                        
+                                        <div className="flex space-x-2 pt-4">
+                                          <Button 
+                                            variant="outline" 
+                                            className="border-salon-500 text-salon-500 hover:bg-salon-50"
+                                            onClick={() => navigate('/appointments/new')}
+                                          >
+                                            Reagendar
+                                          </Button>
+                                          <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50">
+                                            Cancelar
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </SheetContent>
+                                </Sheet>
                               ) : (
-                                <Button variant="outline" size="sm" className="text-salon-500 border-salon-500">
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="text-salon-500 border-salon-500"
+                                  onClick={() => handleNewAppointment(hour)}
+                                >
                                   Agendar
                                 </Button>
                               )}
