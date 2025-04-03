@@ -22,6 +22,12 @@ const buttonVariants = cva(
         salon: "bg-salon-500 text-white hover:bg-salon-600 shadow-sm",
         "salon-outline": "border border-salon-500 text-salon-500 hover:bg-salon-50 dark:hover:bg-salon-950/20",
         "salon-ghost": "text-salon-500 hover:bg-salon-50 dark:hover:bg-salon-950/20",
+        professional: "bg-blue-500 text-white hover:bg-blue-600 shadow-sm",
+        "professional-outline": "border border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20",
+        "professional-ghost": "text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20",
+        service: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm",
+        "service-outline": "border border-emerald-500 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20",
+        "service-ghost": "text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20",
       },
       size: {
         default: "h-10 px-4 py-2",

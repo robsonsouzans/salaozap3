@@ -1,5 +1,11 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { 
+  MapPin, Clock, Scissors, Filter, Search as SearchIcon, 
+  Heart, Calendar, Info, Users, Star, DollarSign
+} from 'lucide-react';
+
 import Sidebar from '@/components/Sidebar';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
@@ -8,13 +14,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Star, MapPin, Clock, Scissors, Filter, Search as SearchIcon, Heart, Calendar, Info } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-// Example data for salons (updated with new images)
+// Example data for salons
 const salons = [
   {
     id: 1,
@@ -100,8 +104,12 @@ const professionals = [
     reviews: 187,
     specialty: 'Colorista e Cabeleireira',
     salon: 'Salão Beleza Divina',
+    salonId: 1,
     price: '$$',
-    availability: 'Hoje às 14:00'
+    availability: 'Hoje às 14:00',
+    bio: 'Especialista em coloração e mechas, com mais de 10 anos de experiência no mercado da beleza. Apaixonada por transformações e técnicas inovadoras.',
+    services: ['Corte', 'Coloração', 'Mechas', 'Escova'],
+    workingSince: '2013'
   },
   {
     id: 2,
@@ -111,8 +119,12 @@ const professionals = [
     reviews: 103,
     specialty: 'Barbeiro',
     salon: 'Barbearia Moderna',
+    salonId: 4,
     price: '$$',
-    availability: 'Hoje às 16:00'
+    availability: 'Hoje às 16:00',
+    bio: 'Barbeiro com técnicas tradicionais e modernas. Especialista em cortes masculinos, barba e tratamentos capilares.',
+    services: ['Corte Masculino', 'Barba', 'Tratamentos'],
+    workingSince: '2015'
   },
   {
     id: 3,
@@ -122,8 +134,12 @@ const professionals = [
     reviews: 156,
     specialty: 'Manicure e Pedicure',
     salon: 'Belle Spa & Cabelo',
+    salonId: 3,
     price: '$$$',
-    availability: 'Amanhã às 10:30'
+    availability: 'Amanhã às 10:30',
+    bio: 'Especialista em unhas, com formação em nail art e técnicas avançadas. Trabalha com os melhores produtos e tendências do mercado.',
+    services: ['Manicure', 'Pedicure', 'Unhas em Gel', 'Nail Art'],
+    workingSince: '2018'
   },
   {
     id: 4,
@@ -133,19 +149,175 @@ const professionals = [
     reviews: 89,
     specialty: 'Corte Masculino e Barba',
     salon: 'Barbearia Moderna',
+    salonId: 4,
     price: '$$',
-    availability: 'Hoje às 18:00'
+    availability: 'Hoje às 18:00',
+    bio: 'Expert em cortes masculinos modernos e tradicionais. Atualizado com as últimas tendências do universo da barbearia.',
+    services: ['Corte Masculino', 'Barba', 'Tratamentos'],
+    workingSince: '2017'
+  },
+  {
+    id: 5,
+    name: 'Mariana Santos',
+    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.9,
+    reviews: 201,
+    specialty: 'Maquiadora Profissional',
+    salon: 'Espaço Bem Estar',
+    salonId: 5,
+    price: '$$$',
+    availability: 'Amanhã às 09:00',
+    bio: 'Maquiadora profissional com experiência em eventos sociais, casamentos e editoriais de moda. Especialista em técnicas para valorizar a beleza natural.',
+    services: ['Maquiagem Social', 'Maquiagem para Noivas', 'Design de Sobrancelhas'],
+    workingSince: '2014'
+  },
+  {
+    id: 6,
+    name: 'Ricardo Torres',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80',
+    rating: 4.8,
+    reviews: 135,
+    specialty: 'Cabeleireiro e Visagista',
+    salon: 'Art & Color Studio',
+    salonId: 6,
+    price: '$$$',
+    availability: 'Hoje às 15:30',
+    bio: 'Cabeleireiro com formação em visagismo, especialista em encontrar o corte e cor ideais para cada cliente, considerando formato de rosto e estilo pessoal.',
+    services: ['Corte', 'Coloração', 'Visagismo', 'Mechas'],
+    workingSince: '2010'
   }
 ];
 
-// Services data (updated with new images)
+// Services data (expanded)
 const services = [
-  { id: 1, name: 'Corte de Cabelo', image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 50', duration: '45 min' },
-  { id: 2, name: 'Coloração', image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 120', duration: '2h' },
-  { id: 3, name: 'Manicure', image: 'https://images.unsplash.com/photo-1610992015732-2449b76344bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 35', duration: '40 min' },
-  { id: 4, name: 'Pedicure', image: 'https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 45', duration: '45 min' },
-  { id: 5, name: 'Massagem', image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 90', duration: '1h' },
-  { id: 6, name: 'Depilação', image: 'https://images.unsplash.com/photo-1615396899439-4c3e603abad2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', price: 'A partir de R$ 40', duration: '30 min' }
+  {
+    id: 1, 
+    name: 'Corte de Cabelo', 
+    image: 'https://images.unsplash.com/photo-1622286342621-4bd786c2447c?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 50', 
+    duration: '45 min',
+    description: 'Cortes personalizados para todos os tipos de cabelo, incluindo lavagem e finalização.',
+    category: 'Cabelo',
+    salons: [1, 2, 3, 6],
+    professionals: [1, 4, 6]
+  },
+  {
+    id: 2, 
+    name: 'Coloração', 
+    image: 'https://images.unsplash.com/photo-1605497788044-5a32c7078486?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 120', 
+    duration: '2h',
+    description: 'Coloração completa com produtos de alta qualidade para um resultado duradouro e brilhante.',
+    category: 'Cabelo',
+    salons: [1, 3, 6],
+    professionals: [1, 6]
+  },
+  {
+    id: 3, 
+    name: 'Manicure', 
+    image: 'https://images.unsplash.com/photo-1610992015732-2449b76344bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 35', 
+    duration: '40 min',
+    description: 'Tratamento completo para unhas das mãos, incluindo corte, lixamento, hidratação e esmaltação.',
+    category: 'Unhas',
+    salons: [1, 3, 5],
+    professionals: [3]
+  },
+  {
+    id: 4, 
+    name: 'Pedicure', 
+    image: 'https://images.unsplash.com/photo-1519751138087-5bf79df62d5b?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 45', 
+    duration: '45 min',
+    description: 'Cuidados completos para os pés e unhas, com esfoliação, hidratação e esmaltação.',
+    category: 'Unhas',
+    salons: [1, 3, 5],
+    professionals: [3]
+  },
+  {
+    id: 5, 
+    name: 'Massagem', 
+    image: 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 90', 
+    duration: '1h',
+    description: 'Massagem relaxante ou terapêutica para alívio de tensões e bem-estar do corpo.',
+    category: 'Bem-estar',
+    salons: [3, 5],
+    professionals: []
+  },
+  {
+    id: 6, 
+    name: 'Depilação', 
+    image: 'https://images.unsplash.com/photo-1615396899439-4c3e603abad2?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 40', 
+    duration: '30 min',
+    description: 'Remoção de pelos corporais com técnicas que garantem resultado duradouro.',
+    category: 'Estética',
+    salons: [3, 5],
+    professionals: []
+  },
+  {
+    id: 7, 
+    name: 'Barba', 
+    image: 'https://images.unsplash.com/photo-1621605815971-fbc98d665033?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 35', 
+    duration: '30 min',
+    description: 'Modelagem completa de barba, com toalha quente, produtos especiais e finalização.',
+    category: 'Barbearia',
+    salons: [4],
+    professionals: [2, 4]
+  },
+  {
+    id: 8, 
+    name: 'Maquiagem', 
+    image: 'https://images.unsplash.com/photo-1596704017254-9b5e2b6776e1?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80', 
+    price: 'A partir de R$ 90', 
+    duration: '1h',
+    description: 'Maquiagem para diversas ocasiões, desde o dia a dia até eventos especiais.',
+    category: 'Estética',
+    salons: [1, 5],
+    professionals: [5]
+  }
+];
+
+// Professional reviews for dialog
+const professionalReviews = [
+  {
+    id: 1,
+    professionalId: 1,
+    userName: "Isabela Martins",
+    rating: 5,
+    date: "2023-04-15",
+    comment: "A Amanda é incrível! Fez exatamente o que eu queria, mechas perfeitas e super natural.",
+    userImage: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80"
+  },
+  {
+    id: 2,
+    professionalId: 1,
+    userName: "Luiza Santos",
+    rating: 5,
+    date: "2023-03-22",
+    comment: "Profissional excelente! Foi super atenciosa e me deu ótimas dicas para manter meu cabelo.",
+    userImage: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80"
+  },
+  {
+    id: 3,
+    professionalId: 2,
+    userName: "Marcos Silva",
+    rating: 4,
+    date: "2023-04-10",
+    comment: "Muito bom o serviço, o Rafael é muito profissional e atencioso.",
+    userImage: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80"
+  },
+  {
+    id: 4,
+    professionalId: 3,
+    userName: "Paula Oliveira",
+    rating: 5,
+    date: "2023-04-05",
+    comment: "Melhor manicure da cidade! Minhas unhas nunca ficaram tão bonitas.",
+    userImage: "https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&h=400&q=80"
+  }
 ];
 
 const Search = () => {
@@ -153,9 +325,14 @@ const Search = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [selectedSalon, setSelectedSalon] = useState<typeof salons[0] | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<typeof professionals[0] | null>(null);
+  const [selectedService, setSelectedService] = useState<typeof services[0] | null>(null);
+  const [activeTab, setActiveTab] = useState('saloes');
+  const [showServiceProviders, setShowServiceProviders] = useState(false);
+  const [showProfessionalSalons, setShowProfessionalSalons] = useState(false);
   
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,6 +348,10 @@ const Search = () => {
       title: "Filtro aplicado",
       description: `Filtro: ${filter}`,
     });
+  };
+
+  const handleCategoryClick = (category: string) => {
+    setActiveCategory(activeCategory === category ? null : category);
   };
   
   const handleBooking = (id: number, type: 'salon' | 'professional') => {
@@ -201,6 +382,54 @@ const Search = () => {
   const viewProfessionalDetails = (professional: typeof professionals[0]) => {
     setSelectedProfessional(professional);
   };
+
+  const viewServiceDetails = (service: typeof services[0]) => {
+    setSelectedService(service);
+    setShowServiceProviders(true);
+  };
+
+  const viewProfessionalSalons = (professional: typeof professionals[0]) => {
+    setSelectedProfessional(professional);
+    setShowProfessionalSalons(true);
+  };
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setShowServiceProviders(false);
+    setShowProfessionalSalons(false);
+  };
+  
+  // Filter services by category
+  const filteredServices = activeCategory 
+    ? services.filter(service => service.category === activeCategory) 
+    : services;
+
+  // Get service categories
+  const serviceCategories = Array.from(new Set(services.map(service => service.category)));
+  
+  // Find salons that offer a selected service
+  const getSalonsForService = (serviceId: number) => {
+    if (!selectedService) return [];
+    const salonIds = selectedService.salons;
+    return salons.filter(salon => salonIds.includes(salon.id));
+  };
+
+  // Find professionals that offer a selected service
+  const getProfessionalsForService = (serviceId: number) => {
+    if (!selectedService) return [];
+    const professionalIds = selectedService.professionals;
+    return professionals.filter(professional => professionalIds.includes(professional.id));
+  };
+
+  // Get salon by id
+  const getSalonById = (id: number) => {
+    return salons.find(salon => salon.id === id);
+  };
+
+  // Get reviews for a professional
+  const getReviewsForProfessional = (professionalId: number) => {
+    return professionalReviews.filter(review => review.professionalId === professionalId);
+  };
   
   // Animation variants for cards
   const cardVariants = {
@@ -214,6 +443,16 @@ const Search = () => {
         ease: "easeOut"
       }
     })
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
   };
   
   return (
@@ -296,13 +535,14 @@ const Search = () => {
             </Button>
           </div>
           
-          <Tabs defaultValue="saloes" className="mb-6">
+          <Tabs defaultValue="saloes" className="mb-6" onValueChange={handleTabChange}>
             <TabsList className="mb-4">
               <TabsTrigger value="saloes">Salões</TabsTrigger>
               <TabsTrigger value="profissionais">Profissionais</TabsTrigger>
               <TabsTrigger value="servicos">Serviços</TabsTrigger>
             </TabsList>
             
+            {/* Salões tab */}
             <TabsContent value="saloes" className="mt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {salons.map((salon, index) => (
@@ -388,239 +628,38 @@ const Search = () => {
               </div>
             </TabsContent>
             
+            {/* Profissionais tab */}
             <TabsContent value="profissionais" className="mt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {professionals.map((professional, index) => (
-                  <motion.div
-                    key={professional.id}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    custom={index}
-                  >
-                    <Card className="overflow-hidden hover:shadow-lg transition-all duration-200">
-                      <div className="relative pt-6 flex justify-center">
-                        <Avatar className="h-24 w-24 border-4 border-background">
-                          <AvatarImage src={professional.image} alt={professional.name} />
-                          <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
-                        </Avatar>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="absolute top-2 right-2 bg-white/80 hover:bg-white dark:bg-black/50 dark:hover:bg-black/70 rounded-full"
-                          onClick={() => toggleFavorite(professional.id + 100)} // Offset to avoid collision with salon IDs
-                        >
-                          <Heart 
-                            className={`h-5 w-5 ${favorites.includes(professional.id + 100) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} 
-                          />
-                        </Button>
-                      </div>
-                      <CardHeader className="p-4 pb-2 text-center">
-                        <CardTitle className="text-lg">{professional.name}</CardTitle>
-                        <CardDescription className="text-sm">{professional.specialty}</CardDescription>
-                        <div className="flex items-center justify-center mt-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-                          <span className="text-sm font-medium">{professional.rating}</span>
-                          <span className="text-xs text-muted-foreground ml-1">({professional.reviews})</span>
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          {professional.salon}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-4 pt-0 pb-2">
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm font-medium">{professional.price}</span>
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Clock className="h-3 w-3 mr-1" />
-                            <span>{professional.availability}</span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter className="p-4 pt-2 flex gap-2">
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => viewProfessionalDetails(professional)}
-                        >
-                          <Info className="h-4 w-4 mr-1" />
-                          Perfil
-                        </Button>
-                        <Button 
-                          className="flex-1" 
-                          size="sm"
-                          onClick={() => handleBooking(professional.id, 'professional')}
-                        >
-                          <Calendar className="h-4 w-4 mr-1" />
-                          Agendar
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="servicos" className="mt-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {services.map((service, index) => (
-                  <motion.div
-                    key={service.id}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    custom={index}
-                  >
-                    <Card className="modern-card relative overflow-hidden hover:shadow-lg transition-all duration-200">
-                      <div className="absolute inset-0">
-                        <img
-                          src={service.image}
-                          alt={service.name}
-                          className="w-full h-full object-cover opacity-30"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/95 to-background/40" />
-                      </div>
-                      <div className="relative">
-                        <CardHeader className="p-4 pb-2">
-                          <CardTitle className="text-lg">{service.name}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 pb-2">
-                          <div className="flex justify-between mt-2">
-                            <span className="text-sm font-medium">{service.price}</span>
-                            <div className="flex items-center text-sm text-muted-foreground">
-                              <Clock className="h-3 w-3 mr-1" />
-                              <span>{service.duration}</span>
-                            </div>
-                          </div>
-                        </CardContent>
-                        <CardFooter className="p-4 pt-2">
-                          <Button 
-                            className="w-full" 
-                            onClick={() => {
-                              toast({
-                                title: "Serviço selecionado",
-                                description: `Serviço: ${service.name}`
-                              });
-                              navigate(`/search?service=${service.id}`);
-                            }}
+              {!showProfessionalSalons ? (
+                <motion.div 
+                  variants={containerVariants} 
+                  initial="hidden" 
+                  animate="visible" 
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  {professionals.map((professional, index) => (
+                    <motion.div
+                      key={professional.id}
+                      variants={cardVariants}
+                      initial="hidden"
+                      animate="visible"
+                      custom={index}
+                    >
+                      <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 h-full flex flex-col">
+                        <div className="relative pt-6 flex justify-center">
+                          <Avatar className="h-24 w-24 border-4 border-background">
+                            <AvatarImage src={professional.image} alt={professional.name} />
+                            <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
+                          </Avatar>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute top-2 right-2 bg-white/80 hover:bg-white dark:bg-black/50 dark:hover:bg-black/70 rounded-full"
+                            onClick={() => toggleFavorite(professional.id + 100)} // Offset to avoid collision with salon IDs
                           >
-                            Encontrar profissionais
+                            <Heart 
+                              className={`h-5 w-5 ${favorites.includes(professional.id + 100) ? 'fill-blue-500 text-blue-500' : 'text-gray-500'}`} 
+                            />
                           </Button>
-                        </CardFooter>
-                      </div>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
-      
-      {/* Salon Details Dialog */}
-      <Dialog open={!!selectedSalon} onOpenChange={(open) => !open && setSelectedSalon(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{selectedSalon?.name}</DialogTitle>
-            <DialogDescription>
-              {selectedSalon?.location} • {selectedSalon?.distance}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2">
-            <img 
-              src={selectedSalon?.image} 
-              alt={selectedSalon?.name} 
-              className="w-full h-48 object-cover rounded-md mb-4"
-            />
-            <div className="flex items-center mb-3">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-              <span className="text-sm font-medium">{selectedSalon?.rating}</span>
-              <span className="text-xs text-muted-foreground ml-1">({selectedSalon?.reviews} avaliações)</span>
-            </div>
-            <h4 className="font-medium mb-2">Serviços</h4>
-            <div className="flex flex-wrap gap-1 mb-4">
-              {selectedSalon?.services.map((service, idx) => (
-                <Badge key={idx} variant="outline">
-                  {service}
-                </Badge>
-              ))}
-            </div>
-            <h4 className="font-medium mb-2">Disponibilidade</h4>
-            <div className="flex items-center text-sm">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>{selectedSalon?.availability}</span>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedSalon(null)}
-            >
-              Fechar
-            </Button>
-            <Button 
-              onClick={() => {
-                handleBooking(selectedSalon?.id || 0, 'salon');
-                setSelectedSalon(null);
-              }}
-            >
-              Agendar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Professional Details Dialog */}
-      <Dialog open={!!selectedProfessional} onOpenChange={(open) => !open && setSelectedProfessional(null)}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{selectedProfessional?.name}</DialogTitle>
-            <DialogDescription>
-              {selectedProfessional?.specialty}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-2 flex flex-col items-center">
-            <Avatar className="h-28 w-28 mb-4">
-              <AvatarImage src={selectedProfessional?.image} alt={selectedProfessional?.name} />
-              <AvatarFallback>{selectedProfessional?.name.substring(0, 2)}</AvatarFallback>
-            </Avatar>
-            <div className="flex items-center mb-3">
-              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
-              <span className="text-sm font-medium">{selectedProfessional?.rating}</span>
-              <span className="text-xs text-muted-foreground ml-1">({selectedProfessional?.reviews} avaliações)</span>
-            </div>
-            <div className="mb-4 text-center">
-              <h4 className="font-medium mb-1">Salão</h4>
-              <p className="text-sm">{selectedProfessional?.salon}</p>
-            </div>
-            <div className="w-full">
-              <h4 className="font-medium mb-1">Disponibilidade</h4>
-              <div className="flex items-center text-sm">
-                <Clock className="h-4 w-4 mr-1" />
-                <span>{selectedProfessional?.availability}</span>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedProfessional(null)}
-            >
-              Fechar
-            </Button>
-            <Button 
-              onClick={() => {
-                handleBooking(selectedProfessional?.id || 0, 'professional');
-                setSelectedProfessional(null);
-              }}
-            >
-              Agendar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default Search;
+                        </div>
+                        <CardHeader className="p-4 pb-2 text-center">
