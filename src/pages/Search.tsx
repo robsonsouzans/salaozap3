@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -663,3 +664,661 @@ const Search = () => {
                           </Button>
                         </div>
                         <CardHeader className="p-4 pb-2 text-center">
+                          <CardTitle className="text-lg">{professional.name}</CardTitle>
+                          <CardDescription>{professional.specialty}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0 pb-2 text-center flex-grow">
+                          <div className="flex justify-center mb-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                className={`h-4 w-4 ${
+                                  star <= Math.floor(professional.rating)
+                                    ? 'fill-yellow-400 text-yellow-400'
+                                    : star <= professional.rating
+                                    ? 'fill-yellow-400/50 text-yellow-400/50'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm text-muted-foreground ml-1">({professional.reviews})</span>
+                          </div>
+                          <div className="flex justify-center items-center text-sm text-muted-foreground mb-3">
+                            <MapPin className="h-3 w-3 mr-1" />
+                            <span>{professional.salon}</span>
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-1 mb-3">
+                            {professional.services.map((service, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {service}
+                              </Badge>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-auto">
+                            <div className="text-center">
+                              <span className="text-sm text-muted-foreground">Preço</span>
+                              <div className="font-medium">{professional.price}</div>
+                            </div>
+                            <div className="text-center">
+                              <span className="text-sm text-muted-foreground">Disponível</span>
+                              <div className="font-medium">{professional.availability}</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="p-4 pt-2 flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => viewProfessionalDetails(professional)}
+                          >
+                            <Info className="h-4 w-4 mr-1" />
+                            Detalhes
+                          </Button>
+                          <Button 
+                            variant="professional" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleBooking(professional.id, 'professional')}
+                          >
+                            <Calendar className="h-4 w-4 mr-1" />
+                            Agendar
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-1" 
+                      onClick={() => setShowProfessionalSalons(false)}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage src={selectedProfessional?.image} alt={selectedProfessional?.name} />
+                        <AvatarFallback>{selectedProfessional?.name.substring(0, 2)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h2 className="text-xl font-semibold">{selectedProfessional?.name}</h2>
+                        <p className="text-muted-foreground">{selectedProfessional?.specialty}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {selectedProfessional && salons.filter(salon => salon.id === selectedProfessional.salonId).map((salon) => (
+                      <Card key={salon.id} className="overflow-hidden">
+                        <div className="relative">
+                          <img 
+                            src={salon.image} 
+                            alt={salon.name} 
+                            className="w-full h-40 object-cover"
+                          />
+                        </div>
+                        <CardHeader>
+                          <CardTitle>{salon.name}</CardTitle>
+                          <CardDescription>
+                            <div className="flex items-center">
+                              <MapPin className="h-3.5 w-3.5 mr-1" />
+                              {salon.location}
+                            </div>
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                          <p className="mb-3 text-sm text-muted-foreground">
+                            {selectedProfessional?.name} atende neste salão.
+                          </p>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center">
+                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                              <span>{salon.rating}</span>
+                              <span className="text-xs text-muted-foreground ml-1">({salon.reviews})</span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {salon.distance}
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => navigate(`/salons/${salon.id}`)}
+                          >
+                            Ver Salão
+                          </Button>
+                          <Button 
+                            variant="professional" 
+                            size="sm" 
+                            className="flex-1"
+                            onClick={() => handleBooking(selectedProfessional.id, 'professional')}
+                          >
+                            Agendar
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            
+            {/* Serviços tab */}
+            <TabsContent value="servicos" className="mt-2">
+              {!showServiceProviders ? (
+                <div className="space-y-6">
+                  <div className="flex overflow-x-auto pb-3 mb-4 gap-2 scrollbar-hide">
+                    {serviceCategories.map((category) => (
+                      <Button
+                        key={category}
+                        variant={activeCategory === category ? "service" : "service-ghost"}
+                        size="sm"
+                        onClick={() => handleCategoryClick(category)}
+                        className="whitespace-nowrap"
+                      >
+                        {category}
+                      </Button>
+                    ))}
+                  </div>
+
+                  <motion.div 
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible" 
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                  >
+                    {filteredServices.map((service, index) => (
+                      <motion.div
+                        key={service.id}
+                        variants={cardVariants}
+                        initial="hidden"
+                        animate="visible"
+                        custom={index}
+                      >
+                        <Card className="overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer h-full flex flex-col" onClick={() => viewServiceDetails(service)}>
+                          <div className="relative">
+                            <img 
+                              src={service.image} 
+                              alt={service.name} 
+                              className="w-full h-48 object-cover"
+                            />
+                            <Badge className="absolute top-3 right-3 bg-service/90" variant="service">
+                              {service.category}
+                            </Badge>
+                          </div>
+                          <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-lg">{service.name}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-4 pt-0 pb-2 flex-grow">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                              {service.description}
+                            </p>
+                            <div className="grid grid-cols-2 gap-2 mt-auto">
+                              <div>
+                                <span className="text-xs text-gray-500 block">Preço</span>
+                                <span className="font-medium">{service.price}</span>
+                              </div>
+                              <div>
+                                <span className="text-xs text-gray-500 block">Duração</span>
+                                <div className="flex items-center">
+                                  <Clock className="h-3.5 w-3.5 mr-1" />
+                                  <span>{service.duration}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                          <CardFooter className="p-4 pt-2">
+                            <Button variant="service" className="w-full">
+                              Ver Disponibilidade
+                            </Button>
+                          </CardFooter>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 mb-6">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-1" 
+                      onClick={() => setShowServiceProviders(false)}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <div>
+                      <h2 className="text-xl font-semibold">{selectedService?.name}</h2>
+                      <p className="text-muted-foreground">{selectedService?.category} • {selectedService?.duration}</p>
+                    </div>
+                  </div>
+                  
+                  <Tabs defaultValue="saloes">
+                    <TabsList className="mb-6">
+                      <TabsTrigger value="saloes">Salões ({getSalonsForService(selectedService?.id || 0).length})</TabsTrigger>
+                      <TabsTrigger value="profissionais">Profissionais ({getProfessionalsForService(selectedService?.id || 0).length})</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="saloes">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {getSalonsForService(selectedService?.id || 0).map((salon) => (
+                          <Card key={salon.id} className="overflow-hidden">
+                            <div className="relative">
+                              <img 
+                                src={salon.image} 
+                                alt={salon.name} 
+                                className="w-full h-40 object-cover"
+                              />
+                            </div>
+                            <CardHeader>
+                              <CardTitle>{salon.name}</CardTitle>
+                              <CardDescription>
+                                <div className="flex items-center">
+                                  <MapPin className="h-3.5 w-3.5 mr-1" />
+                                  {salon.location}
+                                </div>
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-4 pt-0">
+                              {selectedService && (
+                                <div className="border border-service-200 dark:border-service-800 bg-service-50 dark:bg-service-900/20 rounded-lg p-3 mb-3">
+                                  <div className="flex justify-between items-center">
+                                    <div>
+                                      <h4 className="font-medium text-sm">{selectedService.name}</h4>
+                                      <p className="text-xs text-muted-foreground">{selectedService.duration}</p>
+                                    </div>
+                                    <Badge variant="service">{selectedService.price}</Badge>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                                  <span>{salon.rating}</span>
+                                  <span className="text-xs text-muted-foreground ml-1">({salon.reviews})</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {salon.distance}
+                                </div>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => navigate(`/salons/${salon.id}`)}
+                              >
+                                Ver Salão
+                              </Button>
+                              <Button 
+                                variant="service" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handleBooking(salon.id, 'salon')}
+                              >
+                                Agendar
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="profissionais">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {getProfessionalsForService(selectedService?.id || 0).map((professional) => (
+                          <Card key={professional.id} className="overflow-hidden">
+                            <div className="relative pt-6 flex justify-center">
+                              <Avatar className="h-24 w-24 border-4 border-background">
+                                <AvatarImage src={professional.image} alt={professional.name} />
+                                <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
+                              </Avatar>
+                            </div>
+                            <CardHeader className="text-center">
+                              <CardTitle>{professional.name}</CardTitle>
+                              <CardDescription>{professional.specialty}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="text-center p-4 pt-0">
+                              {selectedService && (
+                                <div className="border border-service-200 dark:border-service-800 bg-service-50 dark:bg-service-900/20 rounded-lg p-3 mb-3">
+                                  <div className="flex justify-between items-center">
+                                    <div className="text-left">
+                                      <h4 className="font-medium text-sm">{selectedService.name}</h4>
+                                      <p className="text-xs text-muted-foreground">{selectedService.duration}</p>
+                                    </div>
+                                    <Badge variant="service">{selectedService.price}</Badge>
+                                  </div>
+                                </div>
+                              )}
+                              <div className="flex justify-center mb-2">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <Star
+                                    key={star}
+                                    className={`h-4 w-4 ${
+                                      star <= Math.floor(professional.rating)
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : star <= professional.rating
+                                        ? 'fill-yellow-400/50 text-yellow-400/50'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                                <span className="text-sm text-muted-foreground ml-1">({professional.reviews})</span>
+                              </div>
+                              <div className="flex justify-center items-center text-sm text-muted-foreground mb-2">
+                                <MapPin className="h-3 w-3 mr-1" />
+                                <span>{professional.salon}</span>
+                              </div>
+                            </CardContent>
+                            <CardFooter className="flex gap-2">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => viewProfessionalDetails(professional)}
+                              >
+                                Ver Perfil
+                              </Button>
+                              <Button 
+                                variant="service" 
+                                size="sm" 
+                                className="flex-1"
+                                onClick={() => handleBooking(professional.id, 'professional')}
+                              >
+                                Agendar
+                              </Button>
+                            </CardFooter>
+                          </Card>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+          
+          {/* Professional Details Dialog */}
+          <Dialog open={!!selectedProfessional && !showProfessionalSalons} onOpenChange={() => setSelectedProfessional(null)}>
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+              <div className="relative h-48 bg-gradient-to-r from-blue-500 to-blue-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 text-white bg-black/20 hover:bg-black/40 z-10"
+                  onClick={() => setSelectedProfessional(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <div className="absolute -bottom-16 w-full flex justify-center">
+                  <Avatar className="h-32 w-32 border-4 border-background">
+                    <AvatarImage src={selectedProfessional?.image} alt={selectedProfessional?.name} />
+                    <AvatarFallback>{selectedProfessional?.name?.substring(0, 2) || "P"}</AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+              
+              <div className="pt-20 px-6">
+                <div className="text-center mb-4">
+                  <h2 className="text-2xl font-bold">{selectedProfessional?.name}</h2>
+                  <p className="text-muted-foreground">{selectedProfessional?.specialty}</p>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{selectedProfessional?.rating}</div>
+                    <p className="text-xs text-muted-foreground">Avaliação</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{selectedProfessional?.reviews}</div>
+                    <p className="text-xs text-muted-foreground">Avaliações</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold">{parseInt(selectedProfessional?.workingSince || "2020")}</div>
+                    <p className="text-xs text-muted-foreground">Desde</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-4 mb-6">
+                  <div>
+                    <h3 className="font-medium mb-2">Sobre</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedProfessional?.bio}
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-2">Especialidades</h3>
+                    <div className="flex flex-wrap gap-1">
+                      {selectedProfessional?.services.map((service, idx) => (
+                        <Badge key={idx} variant="outline">
+                          {service}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-medium mb-2">Salão</h3>
+                    <div className="flex items-center gap-2">
+                      {selectedProfessional && (
+                        <>
+                          <div className="h-10 w-10 rounded-full overflow-hidden">
+                            <img 
+                              src={getSalonById(selectedProfessional.salonId)?.image} 
+                              alt={getSalonById(selectedProfessional.salonId)?.name} 
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                          <div>
+                            <p className="font-medium">{selectedProfessional.salon}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {getSalonById(selectedProfessional.salonId)?.location}
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {selectedProfessional && getReviewsForProfessional(selectedProfessional.id).length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium">Avaliações Recentes</h3>
+                        <Button variant="ghost" size="sm" className="h-8 text-xs">Ver todas</Button>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        {getReviewsForProfessional(selectedProfessional.id).slice(0, 2).map(review => (
+                          <div key={review.id} className="flex gap-3 items-start">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={review.userImage} alt={review.userName} />
+                              <AvatarFallback>{review.userName.substring(0, 2)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <p className="font-medium text-sm">{review.userName}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(review.date).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div className="flex mb-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-3 w-3 ${
+                                      i < review.rating
+                                        ? 'fill-yellow-400 text-yellow-400'
+                                        : 'text-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              <p className="text-sm">{review.comment}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <DialogFooter className="bg-muted/30 p-4 flex flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setShowProfessionalSalons(true);
+                    setSelectedProfessional(selectedProfessional);
+                  }}
+                >
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Ver Salão
+                </Button>
+                <Button 
+                  variant="professional" 
+                  className="flex-1"
+                  onClick={() => {
+                    if (selectedProfessional) {
+                      handleBooking(selectedProfessional.id, 'professional');
+                    }
+                  }}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Agendar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
+          {/* Salon Details Dialog */}
+          <Dialog open={!!selectedSalon} onOpenChange={() => setSelectedSalon(null)}>
+            <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden">
+              <div className="relative h-48">
+                <img 
+                  src={selectedSalon?.image} 
+                  alt={selectedSalon?.name} 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 text-white bg-black/20 hover:bg-black/40"
+                  onClick={() => setSelectedSalon(null)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <div className="absolute bottom-4 left-4 text-white">
+                  <h2 className="text-xl font-bold">{selectedSalon?.name}</h2>
+                  <div className="flex items-center mt-1">
+                    <Star className="h-4 w-4 fill-yellow-400 text-yellow-400 mr-1" />
+                    <span>{selectedSalon?.rating}</span>
+                    <span className="mx-1">•</span>
+                    <span>{selectedSalon?.reviews} avaliações</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-6">
+                <div className="flex items-center text-muted-foreground mb-4">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span className="mr-3">{selectedSalon?.location}</span>
+                  <Clock className="h-4 w-4 mr-1" />
+                  <span>{selectedSalon?.availability}</span>
+                </div>
+                
+                <div className="mb-4">
+                  <h3 className="font-medium mb-2">Serviços</h3>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedSalon?.services.map((service, idx) => (
+                      <Badge key={idx} variant="outline">
+                        {service}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex justify-between items-center py-2 mb-2">
+                  <div className="flex items-center">
+                    <Users className="h-4 w-4 mr-1.5 text-muted-foreground" />
+                    <h3 className="font-medium">Profissionais</h3>
+                  </div>
+                  <span className="text-xs text-muted-foreground">
+                    {professionals.filter(p => p.salonId === selectedSalon?.id).length} disponíveis
+                  </span>
+                </div>
+                
+                <div className="flex gap-2 overflow-x-auto pb-3">
+                  {professionals
+                    .filter(p => p.salonId === selectedSalon?.id)
+                    .map((professional) => (
+                      <div key={professional.id} className="flex-shrink-0 w-16 text-center">
+                        <Avatar className="h-16 w-16 mx-auto mb-1">
+                          <AvatarImage src={professional.image} alt={professional.name} />
+                          <AvatarFallback>{professional.name.substring(0, 2)}</AvatarFallback>
+                        </Avatar>
+                        <p className="text-xs truncate">{professional.name.split(' ')[0]}</p>
+                      </div>
+                    ))}
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
+                    <DollarSign className="h-4 w-4 mr-1.5 text-muted-foreground" />
+                    <h3 className="font-medium">Faixa de Preço</h3>
+                  </div>
+                  <Badge variant="outline" className="font-bold">
+                    {selectedSalon?.price}
+                  </Badge>
+                </div>
+              </div>
+              
+              <DialogFooter className="bg-muted/30 p-4 flex flex-row gap-2">
+                <Button 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    navigate(`/salons/${selectedSalon?.id}`);
+                    setSelectedSalon(null);
+                  }}
+                >
+                  <Info className="h-4 w-4 mr-2" />
+                  Ver Detalhes
+                </Button>
+                <Button 
+                  variant="salon" 
+                  className="flex-1"
+                  onClick={() => {
+                    if (selectedSalon) {
+                      handleBooking(selectedSalon.id, 'salon');
+                    }
+                  }}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Agendar
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Search;
+
