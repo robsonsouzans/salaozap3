@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { motion } from 'framer-motion';
 import { 
-  MapPin, Clock, Phone, Calendar, 
+  MapPin, Clock, Phone, 
   Star, Heart, ChevronLeft, Scissors, 
   Users, DollarSign, Check, CalendarDays,
-  Camera, MessageSquare, Info
+  Camera, MessageSquare, Info,
+  CalendarIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -70,7 +70,6 @@ const SalonDetailPage: React.FC = () => {
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Mock data for demonstration
   const salon = {
     id: '1',
     name: 'Salão Glamour',
@@ -197,7 +196,6 @@ const SalonDetailPage: React.FC = () => {
   ];
 
   const handleBookNow = () => {
-    // Navigate to the appointment page with the salon ID
     navigate(`/appointments/new/salon/${id}`);
   };
   
@@ -213,7 +211,6 @@ const SalonDetailPage: React.FC = () => {
     
     setIsLoading(true);
     
-    // In a real app, you would make an API call here
     setTimeout(() => {
       toast({
         title: "Agendamento realizado!",
@@ -223,12 +220,10 @@ const SalonDetailPage: React.FC = () => {
       setBookingDialogOpen(false);
       setIsLoading(false);
       
-      // Reset selections
       setSelectedService(null);
       setSelectedEmployee(null);
       setSelectedTimeSlot(null);
       
-      // Navigate to appointments page
       setTimeout(() => {
         navigate('/appointments');
       }, 1500);
@@ -303,14 +298,13 @@ const SalonDetailPage: React.FC = () => {
             
             <motion.div variants={itemAnimation} className="w-full">
               <div className="relative overflow-hidden rounded-xl">
-                {/* Main gallery preview */}
                 <div className="group relative h-[300px] md:h-[400px] cursor-pointer" onClick={() => setIsGalleryOpen(true)}>
                   <img
                     src={salon.images[0]}
                     alt={salon.name}
                     className="w-full h-full object-cover rounded-lg"
                   />
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center">
                     <div className="bg-black/70 text-white px-4 py-2 rounded-full flex items-center">
                       <Camera className="h-4 w-4 mr-1.5" />
                       <span>Ver todas as fotos ({salon.images.length})</span>
@@ -318,7 +312,6 @@ const SalonDetailPage: React.FC = () => {
                   </div>
                 </div>
                 
-                {/* Thumbnail previews */}
                 <div className="hidden md:grid grid-cols-4 gap-2 mt-2">
                   {salon.images.slice(1, 5).map((image, index) => (
                     <div 
@@ -386,7 +379,7 @@ const SalonDetailPage: React.FC = () => {
             
             <motion.div variants={itemAnimation} className="flex gap-3">
               <Button size="lg" variant="salon" className="flex-1" onClick={handleBookNow}>
-                <Calendar className="h-5 w-5 mr-2" />
+                <CalendarIcon className="h-5 w-5 mr-2" />
                 Agendar Agora
               </Button>
               
@@ -467,7 +460,7 @@ const SalonDetailPage: React.FC = () => {
                           {[1, 2, 3, 4, 5].map((star) => (
                             <Star 
                               key={star} 
-                              className={`h-3.5 w-3.5 ${star <= 4 ? 'text-amber-400 fill-amber-400' : 'text-gray-300'}`}
+                              className={`h-3.5 w-3.5 ${star <= 4 ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`}
                             />
                           ))}
                         </div>
@@ -501,7 +494,6 @@ const SalonDetailPage: React.FC = () => {
                       <div className="flex-1">
                         <div className="space-y-1">
                           {[5, 4, 3, 2, 1].map((rating) => {
-                            // Calculate percentage for each rating (mock data)
                             const percentage = rating === 5 ? 75 : 
                                              rating === 4 ? 20 : 
                                              rating === 3 ? 4 : 
@@ -658,7 +650,6 @@ const SalonDetailPage: React.FC = () => {
         </div>
       </main>
       
-      {/* Full Gallery Dialog */}
       <Dialog open={isGalleryOpen} onOpenChange={setIsGalleryOpen}>
         <DialogContent className="sm:max-w-3xl p-0 overflow-hidden bg-black/95 border-gray-800">
           <DialogHeader className="absolute top-0 left-0 right-0 p-4 z-10 bg-gradient-to-b from-black/80 to-transparent">
