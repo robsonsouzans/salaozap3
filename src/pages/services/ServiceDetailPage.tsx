@@ -153,7 +153,8 @@ const ServiceDetailPage: React.FC = () => {
     ? salons.filter(s => service.salons.includes(s.id))
     : [];
   
-  const handleBookService = (salonId?: number, professionalId?: number) => {
+  // Updated to ensure proper navigation to appointment process
+  const handleBookService = (serviceId?: number, professionalId?: number, salonId?: number) => {
     let bookingPath = '/appointments/new';
     
     if (professionalId) {
@@ -170,6 +171,16 @@ const ServiceDetailPage: React.FC = () => {
       toast({
         title: "Agendamento iniciado",
         description: `Iniciando agendamento em salão para ${service.name}`,
+      });
+    }
+    else if (serviceId || id) {
+      // Use either the passed service ID or the one from the URL params
+      const serviceIdToUse = serviceId || Number(id);
+      bookingPath += `/service/${serviceIdToUse}`;
+      
+      toast({
+        title: "Agendamento iniciado",
+        description: `Iniciando agendamento para ${service.name}`,
       });
     }
     
@@ -336,7 +347,7 @@ const ServiceDetailPage: React.FC = () => {
                         </p>
                       </div>
                       
-                      <Button variant="service" size="lg" className="mt-6" onClick={() => handleBookService()}>
+                      <Button variant="service" size="lg" className="mt-6" onClick={() => handleBookService(service.id)}>
                         <Calendar className="h-4 w-4 mr-2" />
                         Agendar este Serviço
                       </Button>
@@ -373,7 +384,7 @@ const ServiceDetailPage: React.FC = () => {
                         </Card>
                       ))}
                       
-                      <Button variant="service" size="lg" className="mt-6" onClick={() => handleBookService()}>
+                      <Button variant="service" size="lg" className="mt-6" onClick={() => handleBookService(service.id)}>
                         <Calendar className="h-4 w-4 mr-2" />
                         Agendar este Serviço
                       </Button>
@@ -432,7 +443,7 @@ const ServiceDetailPage: React.FC = () => {
                                 variant="professional" 
                                 className="flex-1" 
                                 size="sm"
-                                onClick={() => handleBookService(undefined, professional.id)}
+                                onClick={() => handleBookService(service.id, professional.id)}
                               >
                                 <Calendar className="h-4 w-4 mr-1" />
                                 Agendar
@@ -511,7 +522,7 @@ const ServiceDetailPage: React.FC = () => {
                                 variant="salon" 
                                 className="flex-1" 
                                 size="sm"
-                                onClick={() => handleBookService(salon.id)}
+                                onClick={() => handleBookService(service.id, undefined, salon.id)}
                               >
                                 <Calendar className="h-4 w-4 mr-1" />
                                 Agendar

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -16,7 +15,8 @@ import {
   X,
   Calendar,
   Clock,
-  Users
+  Users,
+  Info
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,6 @@ const Search: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const user = getCurrentUser();
 
-  // Mock data for salons
   const salonsData: SearchResultItem[] = [
     {
       id: '1',
@@ -108,7 +107,6 @@ const Search: React.FC = () => {
     },
   ];
 
-  // Mock data for services
   const servicesData: SearchResultItem[] = [
     {
       id: '1',
@@ -148,7 +146,6 @@ const Search: React.FC = () => {
     }
   ];
 
-  // Mock data for professionals
   const professionalsData: SearchResultItem[] = [
     {
       id: '1',
@@ -234,14 +231,17 @@ const Search: React.FC = () => {
 
   const handleScheduleWithProfessional = (professionalId: string) => {
     navigate(`/appointments/new/professional/${professionalId}`);
+    setIsDetailModalOpen(false);
   };
 
   const handleScheduleService = (serviceId: string) => {
     navigate(`/appointments/new/service/${serviceId}`);
+    setIsDetailModalOpen(false);
   };
 
   const handleViewSalon = (salonId: string) => {
     navigate(`/salons/${salonId}`);
+    setIsDetailModalOpen(false);
   };
 
   const containerAnimation = {
@@ -415,7 +415,6 @@ const Search: React.FC = () => {
   const renderDetailsModal = () => {
     if (!activeDetailItem) return null;
     
-    // Different modals based on category
     if (selectedCategory === 'professionals') {
       return (
         <DialogContent className="sm:max-w-md">
@@ -459,10 +458,7 @@ const Search: React.FC = () => {
               <Button 
                 className="w-full mb-2" 
                 variant="default"
-                onClick={() => {
-                  setIsDetailModalOpen(false);
-                  handleScheduleWithProfessional(activeDetailItem.id);
-                }}
+                onClick={() => handleScheduleWithProfessional(activeDetailItem.id)}
               >
                 <Calendar className="h-4 w-4 mr-2" />
                 Agendar com este profissional
@@ -470,10 +466,7 @@ const Search: React.FC = () => {
               <Button 
                 className="w-full" 
                 variant="outline"
-                onClick={() => {
-                  setIsDetailModalOpen(false);
-                  handleViewSalon(activeDetailItem.id);
-                }}
+                onClick={() => handleViewSalon(activeDetailItem.id)}
               >
                 Ver salão
               </Button>
@@ -513,10 +506,7 @@ const Search: React.FC = () => {
               <Button 
                 className="w-full" 
                 variant="default"
-                onClick={() => {
-                  setIsDetailModalOpen(false);
-                  handleScheduleService(activeDetailItem.id);
-                }}
+                onClick={() => handleScheduleService(activeDetailItem.id)}
               >
                 <Calendar className="h-4 w-4 mr-2" />
                 Agendar este serviço
@@ -526,7 +516,6 @@ const Search: React.FC = () => {
         </DialogContent>
       );
     } else {
-      // Salons
       return (
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -570,13 +559,19 @@ const Search: React.FC = () => {
             
             <div className="pt-4 border-t">
               <Button 
-                className="w-full"
+                className="w-full mb-2"
                 variant="default" 
-                onClick={() => {
-                  setIsDetailModalOpen(false);
-                  handleViewSalon(activeDetailItem.id);
-                }}
+                onClick={() => navigate(`/appointments/new/salon/${activeDetailItem.id}`)}
               >
+                <Calendar className="h-4 w-4 mr-2" />
+                Agendar neste salão
+              </Button>
+              <Button 
+                className="w-full"
+                variant="outline" 
+                onClick={() => handleViewSalon(activeDetailItem.id)}
+              >
+                <Info className="h-4 w-4 mr-2" />
                 Ver detalhes do salão
               </Button>
             </div>

@@ -23,6 +23,7 @@ import ServicesPage from '@/pages/services/ServicesPage';
 import EmployeesPage from '@/pages/employees/EmployeesPage';
 import SalonsListPage from '@/pages/salons/SalonsListPage';
 import SalonDetailPage from '@/pages/salons/SalonDetailPage';
+import ServiceDetailPage from '@/pages/services/ServiceDetailPage';
 import NotFound from '@/pages/NotFound';
 import FinancesPage from '@/pages/finances/FinancesPage';
 import ReviewsPage from '@/pages/reviews/ReviewsPage';
@@ -69,6 +70,7 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/salons" element={<SalonsListPage />} />
             <Route path="/salons/:id" element={<SalonDetailPage />} />
+            <Route path="/services/:id" element={<ServiceDetailPage />} />
             
             <Route 
               path="/dashboard" 

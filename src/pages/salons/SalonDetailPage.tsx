@@ -196,7 +196,23 @@ const SalonDetailPage: React.FC = () => {
   ];
 
   const handleBookNow = () => {
+    if (!id) {
+      toast({
+        title: "Erro ao agendar",
+        description: "ID do salão não encontrado",
+        variant: "destructive"
+      });
+      return;
+    }
     navigate(`/appointments/new/salon/${id}`);
+  };
+  
+  const handleBookService = (serviceId: string) => {
+    navigate(`/appointments/new/service/${serviceId}`);
+  };
+  
+  const handleBookWithProfessional = (professionalId: string) => {
+    navigate(`/appointments/new/professional/${professionalId}`);
   };
   
   const handleBookAppointment = () => {
@@ -429,7 +445,16 @@ const SalonDetailPage: React.FC = () => {
                         </div>
                         
                         <div className="mt-4 pt-3 border-t border-dashed border-gray-200 dark:border-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="salon" size="sm" className="w-full" onClick={handleBookNow}>
+                          <Button 
+                            variant="salon" 
+                            size="sm" 
+                            className="w-full" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleBookService(service.id);
+                            }}
+                          >
                             Agendar Serviço
                           </Button>
                         </div>
@@ -448,7 +473,16 @@ const SalonDetailPage: React.FC = () => {
                           className="w-full h-full object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-4">
-                          <Button variant="salon" size="sm" className="w-full" onClick={handleBookNow}>
+                          <Button 
+                            variant="salon" 
+                            size="sm" 
+                            className="w-full" 
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleBookWithProfessional(employee.id);
+                            }}
+                          >
                             Agendar com {employee.name.split(' ')[0]}
                           </Button>
                         </div>
