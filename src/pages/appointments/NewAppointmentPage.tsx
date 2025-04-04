@@ -74,10 +74,8 @@ const NewAppointmentPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   
-  // Determine from URL if we're booking with a specific salon, service or professional
   const [bookingSource, setBookingSource] = useState<'salon' | 'service' | 'professional' | null>(null);
   
-  // State for appointment form
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedSalon, setSelectedSalon] = useState<Salon | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
@@ -85,51 +83,43 @@ const NewAppointmentPage: React.FC = () => {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [specialRequests, setSpecialRequests] = useState('');
   
-  // Available options based on selections
   const [availableSalons, setAvailableSalons] = useState<Salon[]>([]);
   const [availableServices, setAvailableServices] = useState<Service[]>([]);
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   
-  // Loading states
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const user = getCurrentUser();
   
   useEffect(() => {
-    // Determine what kind of booking we're doing based on the URL
     const pathParts = window.location.pathname.split('/');
-    const bookingType = pathParts[pathParts.length - 2]; // "salon", "service", or "professional"
+    const bookingType = pathParts[pathParts.length - 2];
     
     if (bookingType === 'salon' && paramId) {
       setBookingSource('salon');
-      // Pre-select the salon from the URL parameter
       const salon = getSalonById(paramId);
       if (salon) {
         setSelectedSalon(salon);
         
-        // Load services for this salon
         const salonServices = getServicesForSalon(paramId);
         setAvailableServices(salonServices);
       }
     } else if (bookingType === 'service' && paramId) {
       setBookingSource('service');
-      // Pre-select the service from URL parameter
       const service = getServiceById(paramId);
       if (service) {
         setSelectedService(service);
       }
     } else if (bookingType === 'professional' && paramId) {
       setBookingSource('professional');
-      // Pre-select the professional from URL parameter
       const professional = getEmployeeById(paramId);
       if (professional) {
         setSelectedEmployee(professional);
       }
     }
     
-    // Load all salons by default
     setAvailableSalons([
       { id: '1', name: 'Salão Glamour' },
       { id: '2', name: 'Bela Hair' },
@@ -137,14 +127,12 @@ const NewAppointmentPage: React.FC = () => {
       { id: '4', name: 'Espaço Beleza' },
     ]);
     
-    // Initialize available times
     updateAvailableTimes(selectedDate);
   }, [paramId]);
   
   const updateAvailableTimes = (date: Date) => {
     setIsLoading(true);
     
-    // Mock loading time
     setTimeout(() => {
       const timeSlots = getAvailableTimeSlots(date);
       setAvailableTimes(timeSlots);
@@ -185,10 +173,11 @@ const NewAppointmentPage: React.FC = () => {
         professionalId: selectedEmployee?.id || '1',
         date: format(values.date, 'yyyy-MM-dd'),
         time: values.time,
-        status: 'scheduled',
+        status: 'scheduled' as const,
         salonName: selectedSalon?.name || values.salon,
         salonId: selectedSalon?.id || '1',
         price: selectedService?.price || 'R$ 50,00',
+        clientName: user?.name || 'Cliente',
       };
       
       addAppointment(newAppointment);
