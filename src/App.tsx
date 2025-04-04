@@ -34,6 +34,7 @@ import AppointmentsCalendarPage from '@/pages/appointments/AppointmentsCalendarP
 import AppointmentsListPage from '@/pages/appointments/AppointmentsListPage';
 import AppointmentsConfirmationsPage from '@/pages/appointments/AppointmentsConfirmationsPage';
 import NewAppointmentPage from '@/pages/appointments/NewAppointmentPage';
+import FavoritesPage from '@/pages/FavoritesPage';
 import { getCurrentUser } from '@/lib/auth';
 import './App.css';
 
@@ -79,6 +80,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Favorites route */}
+            <Route 
+              path="/favorites" 
+              element={
+                <ProtectedRoute>
+                  <FavoritesPage />
                 </ProtectedRoute>
               } 
             />
