@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Lock, Mail, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, LogIn, Store, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Logo from '@/components/Logo';
@@ -64,6 +64,15 @@ const Login: React.FC = () => {
     }, 1000);
   };
   
+  const handleDemoLogin = (role: 'client' | 'salon') => {
+    setLoading(true);
+    demoLogin(role);
+    setTimeout(() => {
+      navigate('/dashboard');
+      setLoading(false);
+    }, 800);
+  };
+  
   return (
     <div className="relative min-h-screen flex flex-col justify-center items-center p-4 overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <AnimatedBubbles color="rgba(99, 102, 241, 0.1)" />
@@ -82,7 +91,7 @@ const Login: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-gray-100 dark:bg-gray-800/80 dark:border-gray-700 dark:hover:bg-gray-700"
-          onClick={() => demoLogin('client')}
+          onClick={() => handleDemoLogin('client')}
         >
           Entrar como Cliente
         </Button>
@@ -90,7 +99,7 @@ const Login: React.FC = () => {
           variant="outline" 
           size="sm" 
           className="bg-white/80 backdrop-blur-sm border-gray-200 hover:bg-gray-100 dark:bg-gray-800/80 dark:border-gray-700 dark:hover:bg-gray-700"
-          onClick={() => demoLogin('salon')}
+          onClick={() => handleDemoLogin('salon')}
         >
           Entrar como Salão
         </Button>
@@ -182,6 +191,25 @@ const Login: React.FC = () => {
               </Button>
             </div>
           </form>
+          
+          <div className="mt-6 grid grid-cols-2 gap-4">
+            <Button
+              variant="outline" 
+              className="flex items-center justify-center gap-2 h-12 border-salon-500 text-salon-600 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-800"
+              onClick={() => handleDemoLogin('client')}
+            >
+              <User className="h-4 w-4" />
+              <span>Acessar como Cliente</span>
+            </Button>
+            <Button
+              variant="outline"
+              className="flex items-center justify-center gap-2 h-12 border-salon-500 text-salon-600 hover:bg-salon-50 dark:border-salon-400 dark:text-salon-400 dark:hover:bg-gray-800"
+              onClick={() => handleDemoLogin('salon')}
+            >
+              <Store className="h-4 w-4" />
+              <span>Acessar como Salão</span>
+            </Button>
+          </div>
           
           <div className="mt-6 relative flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">

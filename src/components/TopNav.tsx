@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, User, Search, Menu, Store, Scissors, BarChart, MessageCircle, Settings } from 'lucide-react';
+import { Home, Calendar, User, Search, Menu, Store, Scissors, BarChart, MessageCircle, Settings, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,28 +33,36 @@ const TopNav: React.FC = () => {
             {isClient ? (
               <>
                 <NavigationMenuItem>
-                  <Link to="/dashboard" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link to="/dashboard">
                       <Home className="h-4 w-4 mr-2" />
                       <span>Home</span>
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link to="/appointments/new" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link to="/appointments/new">
                       <Calendar className="h-4 w-4 mr-2" />
                       <span>Agendar</span>
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
                 <NavigationMenuItem>
-                  <Link to="/search" legacyBehavior passHref>
-                    <NavigationMenuLink className={navigationMenuTriggerStyle()}>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link to="/search">
                       <Search className="h-4 w-4 mr-2" />
                       <span>Buscar Salões</span>
-                    </NavigationMenuLink>
-                  </Link>
+                    </Link>
+                  </NavigationMenuLink>
+                </NavigationMenuItem>
+                <NavigationMenuItem>
+                  <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                    <Link to="/favorites">
+                      <Heart className="h-4 w-4 mr-2" />
+                      <span>Favoritos</span>
+                    </Link>
+                  </NavigationMenuLink>
                 </NavigationMenuItem>
               </>
             ) : (

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, User, Search, Menu, Store, Scissors, BarChart, MessageCircle } from 'lucide-react';
+import { Home, Calendar, User, Search, Menu, Store, Scissors, BarChart, MessageCircle, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -20,6 +20,7 @@ const BottomNav: React.FC = () => {
     { name: 'Home', path: '/dashboard', icon: Home },
     { name: 'Agendar', path: '/appointments/new', icon: Calendar },
     { name: 'Buscar', path: '/search', icon: Search },
+    { name: 'Favoritos', path: '/favorites', icon: Heart },
     { name: 'Perfil', path: '/profile', icon: User },
   ];
   
