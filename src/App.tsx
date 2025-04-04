@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from '@/hooks/use-theme';
 import DarkModeProvider from '@/components/DarkModeProvider';
+import TopNav from '@/components/TopNav';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -64,6 +65,7 @@ function App() {
     <ThemeProvider defaultTheme="light">
       <DarkModeProvider>
         <Router>
+          <TopNav />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
