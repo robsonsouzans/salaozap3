@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -52,7 +53,8 @@ import {
   Building, 
   Scissors, 
   User,
-  Info
+  Info,
+  Store
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -360,7 +362,7 @@ const NewAppointmentPage: React.FC = () => {
                 
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <Building className="h-5 w-5 text-primary" />
+                    <Store className="h-5 w-5 text-primary" />
                     <h2 className="text-xl font-medium">Local e Serviço</h2>
                   </div>
                   <Separator />
