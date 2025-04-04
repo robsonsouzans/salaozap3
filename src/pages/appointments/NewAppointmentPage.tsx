@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -12,7 +11,8 @@ import {
   getEmployeeById,
   getAvailableTimeSlots,
   getPopularTimeSlots,
-  addAppointment
+  addAppointment,
+  services as allServices
 } from '@/lib/appointmentService';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ import {
   CalendarIcon, 
   CheckCircle2, 
   Star, 
-  BuildingStore, 
+  Building, 
   Scissors, 
   User,
   Info
@@ -126,17 +126,14 @@ const NewAppointmentPage: React.FC = () => {
   
   const user = getCurrentUser();
   
-  // Atualiza serviços quando o salão é selecionado
   const handleSalonChange = (salonName: string) => {
     const salon = availableSalons.find(s => s.name === salonName);
     if (salon) {
       setSelectedSalon(salon);
       
-      // Busca serviços para o salão selecionado
       const salonServices = getServicesForSalon(salon.id);
       setAvailableServices(salonServices);
       
-      // Reseta valores de serviço e profissional
       form.setValue("service", "");
       form.setValue("professional", "");
       setSelectedService(null);
@@ -145,25 +142,21 @@ const NewAppointmentPage: React.FC = () => {
     }
   };
   
-  // Atualiza profissionais quando o serviço é selecionado
   const handleServiceChange = (serviceName: string) => {
     const service = availableServices.find(s => s.name === serviceName);
     if (service) {
       setSelectedService(service);
       
-      // Busca profissionais para o salão selecionado
       if (selectedSalon) {
         const employees = getEmployeesForSalon(selectedSalon.id);
         setAvailableEmployees(employees);
       }
       
-      // Reseta valor de profissional
       form.setValue("professional", "");
       setSelectedEmployee(null);
     }
   };
   
-  // Seleciona profissional
   const handleProfessionalChange = (professionalName: string) => {
     const professional = availableEmployees.find(e => e.name === professionalName);
     if (professional) {
@@ -192,7 +185,6 @@ const NewAppointmentPage: React.FC = () => {
         setSelectedService(service);
         form.setValue("service", service.name);
         
-        // Carrega todos os salões que oferecem este serviço
         setAvailableSalons([
           { id: '1', name: 'Salão Glamour' },
           { id: '2', name: 'Bela Hair' },
@@ -207,16 +199,13 @@ const NewAppointmentPage: React.FC = () => {
         setSelectedEmployee(professional);
         form.setValue("professional", professional.name);
         
-        // Carrega todos os salões onde este profissional trabalha
         setAvailableSalons([
           { id: '1', name: 'Salão Glamour' },
         ]);
         
-        // Carrega todos os serviços que este profissional oferece
-        setAvailableServices(services);
+        setAvailableServices(allServices);
       }
     } else {
-      // Carrega todos os salões por padrão
       setAvailableSalons([
         { id: '1', name: 'Salão Glamour' },
         { id: '2', name: 'Bela Hair' },
@@ -314,7 +303,6 @@ const NewAppointmentPage: React.FC = () => {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-                {/* Seção: Data */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <CalendarIcon className="h-5 w-5 text-primary" />
@@ -370,10 +358,9 @@ const NewAppointmentPage: React.FC = () => {
                   />
                 </div>
                 
-                {/* Seção: Detalhes */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <BuildingStore className="h-5 w-5 text-primary" />
+                    <Building className="h-5 w-5 text-primary" />
                     <h2 className="text-xl font-medium">Local e Serviço</h2>
                   </div>
                   <Separator />
@@ -521,7 +508,6 @@ const NewAppointmentPage: React.FC = () => {
                   />
                 </div>
                 
-                {/* Seção: Horário */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-5 w-5 text-primary" />
@@ -581,7 +567,6 @@ const NewAppointmentPage: React.FC = () => {
                   />
                 </div>
                 
-                {/* Seção: Observações */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
                     <Info className="h-5 w-5 text-primary" />
@@ -607,7 +592,6 @@ const NewAppointmentPage: React.FC = () => {
                   />
                 </div>
                 
-                {/* Resumo e Botão de Envio */}
                 {selectedService && selectedEmployee && selectedTime && (
                   <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-lg border border-gray-100 dark:border-gray-700 mb-4">
                     <h3 className="font-medium mb-2">Resumo do Agendamento</h3>
