@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -112,7 +111,7 @@ const SidebarMenu = () => {
   // Salon Menu
   if (isSalon) {
     return (
-      <div className="mt-2 space-y-1">
+      <div className="mt-2 space-y-2">
         <MenuItem 
           icon={<Home size={18} />} 
           title="Dashboard" 
@@ -190,7 +189,7 @@ const SidebarMenu = () => {
   // Client Menu
   if (isClient) {
     return (
-      <div className="mt-2 space-y-1">
+      <div className="mt-2 space-y-2">
         <MenuItem 
           icon={<Home size={18} />} 
           title="Dashboard" 
@@ -243,7 +242,7 @@ const SidebarMenu = () => {
   
   // Default (Admin) menu
   return (
-    <div className="mt-2 space-y-1">
+    <div className="mt-2 space-y-2">
       <MenuItem 
         icon={<Home size={18} />} 
         title="Dashboard" 
