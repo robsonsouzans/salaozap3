@@ -13,7 +13,8 @@ import {
   getAvailableTimeSlots,
   getPopularTimeSlots,
   addAppointment,
-  services as allServices
+  services as allServices,
+  salons as allSalons
 } from '@/lib/appointmentService';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
@@ -148,6 +149,7 @@ const NewAppointmentPage: React.FC = () => {
     const salon = availableSalons.find(s => s.name === salonName);
     if (salon) {
       setSelectedSalon(salon);
+      form.setValue("salon", salon.name);
       
       const salonServices = getServicesForSalon(salon.id);
       setAvailableServices(salonServices);
@@ -164,6 +166,7 @@ const NewAppointmentPage: React.FC = () => {
     const service = availableServices.find(s => s.name === serviceName);
     if (service) {
       setSelectedService(service);
+      form.setValue("service", service.name);
       
       if (selectedSalon) {
         const employees = getEmployeesForSalon(selectedSalon.id);
@@ -179,14 +182,24 @@ const NewAppointmentPage: React.FC = () => {
     const professional = availableEmployees.find(e => e.name === professionalName);
     if (professional) {
       setSelectedEmployee(professional);
+      form.setValue("professional", professional.name);
     }
+  };
+
+  const handleTimeChange = (time: string) => {
+    setSelectedTime(time);
+    form.setValue("time", time);
   };
 
   const handlePaymentMethodChange = (paymentMethodId: string) => {
     setSelectedPaymentMethod(paymentMethodId);
+    form.setValue("paymentMethod", paymentMethodId);
   };
   
   useEffect(() => {
+    // Always make sure all salons are loaded
+    setAvailableSalons(allSalons);
+    
     const pathParts = window.location.pathname.split('/');
     const bookingType = pathParts[pathParts.length - 2];
     
@@ -206,13 +219,6 @@ const NewAppointmentPage: React.FC = () => {
       if (service) {
         setSelectedService(service);
         form.setValue("service", service.name);
-        
-        setAvailableSalons([
-          { id: '1', name: 'Salão Glamour' },
-          { id: '2', name: 'Bela Hair' },
-          { id: '3', name: 'Barber Shop' },
-          { id: '4', name: 'Espaço Beleza' },
-        ]);
       }
     } else if (bookingType === 'professional' && paramId) {
       setBookingSource('professional');
@@ -221,19 +227,8 @@ const NewAppointmentPage: React.FC = () => {
         setSelectedEmployee(professional);
         form.setValue("professional", professional.name);
         
-        setAvailableSalons([
-          { id: '1', name: 'Salão Glamour' },
-        ]);
-        
         setAvailableServices(allServices);
       }
-    } else {
-      setAvailableSalons([
-        { id: '1', name: 'Salão Glamour' },
-        { id: '2', name: 'Bela Hair' },
-        { id: '3', name: 'Barber Shop' },
-        { id: '4', name: 'Espaço Beleza' },
-      ]);
     }
     
     // Load payment methods
@@ -257,6 +252,7 @@ const NewAppointmentPage: React.FC = () => {
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
+      form.setValue("date", date);
       updateAvailableTimes(date);
     }
   };
@@ -278,8 +274,19 @@ const NewAppointmentPage: React.FC = () => {
     form.setValue("date", selectedDate);
   }, [selectedDate, form]);
 
-  const proceedToPayment = () => {
-    const isValid = form.trigger(['date', 'salon', 'service', 'professional', 'time']);
+  // Function to check if all required fields are filled
+  const areRequiredFieldsFilled = () => {
+    const values = form.getValues();
+    return (
+      values.salon && 
+      values.service && 
+      values.professional && 
+      values.time
+    );
+  };
+
+  const proceedToPayment = async () => {
+    const isValid = await form.trigger(['date', 'salon', 'service', 'professional', 'time']);
     if (isValid) {
       setCurrentStep(2);
     }
@@ -586,7 +593,10 @@ const NewAppointmentPage: React.FC = () => {
                           <FormItem>
                             <FormLabel>Horário</FormLabel>
                             <Select 
-                              onValueChange={field.onChange} 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                handleTimeChange(value);
+                              }} 
                               value={field.value}
                               disabled={!selectedService || isLoading}
                             >
@@ -661,7 +671,7 @@ const NewAppointmentPage: React.FC = () => {
                       className="w-full" 
                       size="lg"
                       onClick={proceedToPayment}
-                      disabled={!selectedService || !selectedEmployee || !selectedTime}
+                      disabled={!areRequiredFieldsFilled()}
                     >
                       <span className="flex items-center gap-2">
                         <CreditCard className="h-5 w-5" />
