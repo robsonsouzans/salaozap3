@@ -1,14 +1,11 @@
-import * as React from "react"
 
-import type {
-  ToastActionElement,
-  ToastProps,
-} from "@/components/ui/toast"
+import { useState, useEffect } from "react"
+import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 5
+const TOAST_REMOVE_DELAY = 1000
 
-type ToasterToast = ToastProps & {
+export type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
@@ -24,8 +21,8 @@ const actionTypes = {
 
 let count = 0
 
-function genId() {
-  count = (count + 1) % Number.MAX_SAFE_INTEGER
+function generateId() {
+  count = (count + 1) % Number.MAX_VALUE
   return count.toString()
 }
 
@@ -71,7 +68,7 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
-export const reducer = (state: State, action: Action): State => {
+const reducer = (state: State, action: Action): State => {
   switch (action.type) {
     case "ADD_TOAST":
       return {
@@ -140,9 +137,9 @@ function dispatch(action: Action) {
 type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
-  const id = genId()
+  const id = generateId()
 
-  const update = (props: ToasterToast) =>
+  const update = (props: Toast) =>
     dispatch({
       type: "UPDATE_TOAST",
       toast: { ...props, id },
@@ -168,10 +165,27 @@ function toast({ ...props }: Toast) {
   }
 }
 
-function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+// Add preconfigured variants
+toast.success = (props: Omit<Toast, "variant">) => {
+  return toast({ variant: "success", ...props });
+};
 
-  React.useEffect(() => {
+toast.info = (props: Omit<Toast, "variant">) => {
+  return toast({ variant: "info", ...props });
+};
+
+toast.warning = (props: Omit<Toast, "variant">) => {
+  return toast({ variant: "warning", ...props });
+};
+
+toast.error = (props: Omit<Toast, "variant">) => {
+  return toast({ variant: "destructive", ...props });
+};
+
+function useToast() {
+  const [state, setState] = useState<State>(memoryState)
+
+  useEffect(() => {
     listeners.push(setState)
     return () => {
       const index = listeners.indexOf(setState)

@@ -1,1092 +1,1224 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, UserPlus, Phone, Mail, Coffee, Scissors, ChevronRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import Sidebar from '@/components/Sidebar';
-import BottomNav from '@/components/BottomNav';
-import SidebarMenu from '@/components/SidebarMenu';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardFooter,
-} from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Layout, Eye, Edit, Trash2, Search, Plus, Filter, Grid, List,
+  ChevronLeft, ChevronRight, X, Check, ArrowUpDown, User, Calendar, Phone, Mail
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Textarea } from "@/components/ui/textarea";
 
-// Mock data for employees
-const mockEmployees = [
-  { 
-    id: 1, 
-    name: 'Ana Silva', 
-    role: 'Cabeleireira', 
-    phone: '(11) 98765-4321', 
-    email: 'ana.silva@email.com', 
-    avatar: null,
-    skills: ['Corte feminino', 'Coloração', 'Penteados'],
-    isActive: true,
-    bio: 'Especialista em cortes modernos com mais de 5 anos de experiência.',
-    availability: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
-    commissionRate: 30
+// Sample employee data
+const EMPLOYEES_DATA = [
+  {
+    id: '1',
+    name: 'Ana Silva',
+    avatar: 'https://i.pravatar.cc/150?img=1',
+    role: 'Cabeleireira',
+    phone: '(11) 98765-4321',
+    email: 'ana.silva@exemplo.com',
+    status: 'active',
+    specialties: ['Corte Feminino', 'Coloração', 'Penteados'],
+    hireDate: '2021-03-15',
+    commission: 30,
+    schedule: {
+      monday: { active: true, start: '09:00', end: '18:00' },
+      tuesday: { active: true, start: '09:00', end: '18:00' },
+      wednesday: { active: true, start: '09:00', end: '18:00' },
+      thursday: { active: true, start: '09:00', end: '18:00' },
+      friday: { active: true, start: '09:00', end: '18:00' },
+      saturday: { active: true, start: '09:00', end: '14:00' },
+      sunday: { active: false, start: '00:00', end: '00:00' },
+    },
+    bio: 'Especialista em coloração e cortes modernos, com mais de 10 anos de experiência no mercado.'
   },
-  { 
-    id: 2, 
-    name: 'Carlos Oliveira', 
-    role: 'Barbeiro', 
-    phone: '(11) 91234-5678', 
-    email: 'carlos.oliveira@email.com', 
-    avatar: null,
-    skills: ['Barba', 'Corte masculino', 'Progressiva masculina'],
-    isActive: true,
-    bio: 'Barbeiro tradicional com técnicas modernas.',
-    availability: ['Segunda', 'Quarta', 'Sexta', 'Sábado'],
-    commissionRate: 25
+  {
+    id: '2',
+    name: 'Carlos Oliveira',
+    avatar: 'https://i.pravatar.cc/150?img=11',
+    role: 'Barbeiro',
+    phone: '(11) 97654-3210',
+    email: 'carlos.oliveira@exemplo.com',
+    status: 'active',
+    specialties: ['Barba', 'Corte Masculino', 'Desenho'],
+    hireDate: '2022-01-10',
+    commission: 25,
+    schedule: {
+      monday: { active: true, start: '10:00', end: '19:00' },
+      tuesday: { active: true, start: '10:00', end: '19:00' },
+      wednesday: { active: true, start: '10:00', end: '19:00' },
+      thursday: { active: true, start: '10:00', end: '19:00' },
+      friday: { active: true, start: '10:00', end: '19:00' },
+      saturday: { active: true, start: '10:00', end: '15:00' },
+      sunday: { active: false, start: '00:00', end: '00:00' },
+    },
+    bio: 'Barbeiro especializado em cortes modernos e barbas estilizadas.'
   },
-  { 
-    id: 3, 
-    name: 'Paula Santos', 
-    role: 'Manicure', 
-    phone: '(11) 95555-9999', 
-    email: 'paula.santos@email.com', 
-    avatar: null,
-    skills: ['Manicure', 'Pedicure', 'Nail art'],
-    isActive: true,
-    bio: 'Especialista em unhas artísticas e alongamentos.',
-    availability: ['Terça', 'Quinta', 'Sábado'],
-    commissionRate: 35
+  {
+    id: '3',
+    name: 'Juliana Costa',
+    avatar: 'https://i.pravatar.cc/150?img=5',
+    role: 'Manicure',
+    phone: '(11) 91234-5678',
+    email: 'juliana.costa@exemplo.com',
+    status: 'inactive',
+    specialties: ['Unhas em Gel', 'Nail Art', 'Spa para Mãos'],
+    hireDate: '2020-07-20',
+    commission: 20,
+    schedule: {
+      monday: { active: false, start: '00:00', end: '00:00' },
+      tuesday: { active: true, start: '09:00', end: '18:00' },
+      wednesday: { active: true, start: '09:00', end: '18:00' },
+      thursday: { active: true, start: '09:00', end: '18:00' },
+      friday: { active: true, start: '09:00', end: '18:00' },
+      saturday: { active: true, start: '09:00', end: '14:00' },
+      sunday: { active: false, start: '00:00', end: '00:00' },
+    },
+    bio: 'Apaixonada por unhas e nail art, sempre atualizada com as últimas tendências do mercado.'
   },
-  { 
-    id: 4, 
-    name: 'Roberto Pereira', 
-    role: 'Esteticista', 
-    phone: '(11) 97777-8888', 
-    email: 'roberto.pereira@email.com', 
-    avatar: null,
-    skills: ['Limpeza de pele', 'Massagem', 'Tratamentos faciais'],
-    isActive: false,
-    bio: 'Formado em estética avançada, especialista em rejuvenescimento.',
-    availability: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
-    commissionRate: 40
-  },
+  {
+    id: '4',
+    name: 'Pedro Santos',
+    avatar: 'https://i.pravatar.cc/150?img=12',
+    role: 'Esteticista',
+    phone: '(11) 98877-6655',
+    email: 'pedro.santos@exemplo.com',
+    status: 'active',
+    specialties: ['Limpeza de Pele', 'Tratamentos Faciais', 'Massagem'],
+    hireDate: '2021-11-05',
+    commission: 35,
+    schedule: {
+      monday: { active: true, start: '09:00', end: '18:00' },
+      tuesday: { active: true, start: '09:00', end: '18:00' },
+      wednesday: { active: true, start: '09:00', end: '18:00' },
+      thursday: { active: true, start: '09:00', end: '18:00' },
+      friday: { active: true, start: '09:00', end: '18:00' },
+      saturday: { active: false, start: '00:00', end: '00:00' },
+      sunday: { active: false, start: '00:00', end: '00:00' },
+    },
+    bio: 'Especialista em tratamentos faciais e corporais, focado em resultados e bem-estar dos clientes.'
+  }
 ];
 
-// Available roles for employees
-const availableRoles = [
-  'Cabeleireiro(a)', 
-  'Barbeiro(a)', 
-  'Manicure', 
-  'Pedicure', 
-  'Esteticista', 
-  'Maquiador(a)', 
-  'Massagista', 
-  'Recepcionista',
-  'Gerente'
-];
-
-// Available skills that can be assigned
-const availableSkills = [
-  'Corte feminino',
-  'Corte masculino',
-  'Coloração',
-  'Mechas',
-  'Alisamento',
-  'Penteados',
-  'Tratamentos capilares',
-  'Barba',
-  'Manicure',
-  'Pedicure',
-  'Nail art',
-  'Limpeza de pele',
-  'Massagem',
-  'Tratamentos faciais',
-  'Maquiagem',
-  'Depilação',
-  'Alongamento de cílios'
-];
-
-// Available days for availability
-const weekdays = [
-  'Segunda',
-  'Terça',
-  'Quarta',
-  'Quinta',
-  'Sexta',
-  'Sábado',
-  'Domingo'
-];
-
-// Form schema for employee creation/editing
-const employeeFormSchema = z.object({
-  name: z.string().min(2, { message: "Nome deve ter pelo menos 2 caracteres" }),
-  role: z.string().min(1, { message: "Selecione uma função" }),
-  phone: z.string().min(8, { message: "Telefone inválido" }),
+const employeeSchema = z.object({
+  name: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
   email: z.string().email({ message: "Email inválido" }),
-  skills: z.array(z.string()).min(1, { message: "Selecione pelo menos uma habilidade" }),
-  isActive: z.boolean().default(true),
+  phone: z.string().min(8, { message: "Telefone deve ter pelo menos 8 dígitos" }),
+  role: z.string().min(2, { message: "Função é obrigatória" }),
+  status: z.enum(["active", "inactive"]),
+  commission: z.preprocess(
+    (a) => parseInt(z.string().parse(a), 10),
+    z.number().min(0).max(100)
+  ),
+  specialties: z.string().array().min(1, { message: "Selecione pelo menos uma especialidade" }),
   bio: z.string().optional(),
-  availability: z.array(z.string()).min(1, { message: "Selecione pelo menos um dia de disponibilidade" }),
-  commissionRate: z.number().min(0).max(100)
+  avatar: z.string().optional(),
+  schedule: z.object({
+    monday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    tuesday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    wednesday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    thursday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    friday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    saturday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+    sunday: z.object({
+      active: z.boolean(),
+      start: z.string(),
+      end: z.string(),
+    }),
+  }),
 });
 
-type EmployeeFormValues = z.infer<typeof employeeFormSchema>;
+const specialties = [
+  "Corte Feminino",
+  "Corte Masculino",
+  "Coloração",
+  "Penteados",
+  "Barba",
+  "Desenho",
+  "Unhas em Gel",
+  "Nail Art",
+  "Spa para Mãos",
+  "Limpeza de Pele",
+  "Tratamentos Faciais",
+  "Massagem",
+  "Depilação",
+  "Maquiagem",
+  "Extensão de Cílios",
+  "Sobrancelhas",
+];
 
-// Component for displaying an employee card
-const EmployeeCard = ({ employee, onEdit, onDelete, onViewDetails }) => {
-  // Get initials for avatar fallback
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-
-  return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <Avatar className="h-12 w-12">
-          <AvatarImage src={employee.avatar} alt={employee.name} />
-          <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium">{employee.name}</h3>
-            <Badge variant={employee.isActive ? "success" : "secondary"}>
-              {employee.isActive ? "Ativo" : "Inativo"}
-            </Badge>
-          </div>
-          <p className="text-sm text-muted-foreground">{employee.role}</p>
-        </div>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div className="space-y-2 text-sm">
-          <div className="flex items-center">
-            <Phone className="w-4 h-4 mr-2 text-muted-foreground" />
-            <span>{employee.phone}</span>
-          </div>
-          <div className="flex items-center">
-            <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
-            <span className="truncate">{employee.email}</span>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-1">
-            {employee.skills.slice(0, 2).map((skill, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
-            {employee.skills.length > 2 && (
-              <Badge variant="outline" className="text-xs">
-                +{employee.skills.length - 2}
-              </Badge>
-            )}
-          </div>
-        </div>
-      </CardContent>
-      <CardFooter className="pt-2 flex justify-between gap-2">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="text-muted-foreground hover:text-foreground"
-          onClick={() => onViewDetails(employee)}
-        >
-          <span className="mr-1">Detalhes</span>
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 w-8 p-0" 
-            onClick={() => onEdit(employee)}
-          >
-            <Edit className="h-4 w-4" />
-            <span className="sr-only">Editar</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground" 
-            onClick={() => onDelete(employee)}
-          >
-            <Trash2 className="h-4 w-4" />
-            <span className="sr-only">Excluir</span>
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
-  );
+type Employee = z.infer<typeof employeeSchema> & {
+  id: string;
+  hireDate: string;
 };
 
-// Component for employee form dialog (add/edit)
-const EmployeeFormDialog = ({ isOpen, onClose, employee = null, onSave }) => {
-  const isEditing = !!employee;
+const EmployeesPage = () => {
+  const [employees, setEmployees] = useState<Employee[]>(EMPLOYEES_DATA);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<string | null>(null);
+  const [employeeToView, setEmployeeToView] = useState<Employee | null>(null);
   const { toast } = useToast();
-  
-  // Default form values
-  const defaultValues: Partial<EmployeeFormValues> = {
-    name: '',
-    role: '',
-    phone: '',
-    email: '',
-    skills: [],
-    isActive: true,
-    bio: '',
-    availability: [],
-    commissionRate: 30
-  };
-  
-  // Initialize form with employee data if editing
-  const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeFormSchema),
-    defaultValues: isEditing ? {
-      ...defaultValues,
-      ...employee,
-    } : defaultValues,
+  const navigate = useNavigate();
+
+  // Get unique roles for filter
+  const uniqueRoles = Array.from(new Set(employees.map(emp => emp.role)));
+
+  const filteredEmployees = employees.filter(employee => {
+    // Search by name, email, or phone
+    const matchesSearch = employee.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        employee.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        employee.phone.includes(searchQuery);
+    
+    // Filter by status
+    const matchesStatus = statusFilter === "all" || employee.status === statusFilter;
+    
+    // Filter by role
+    const matchesRole = roleFilter === "all" || employee.role === roleFilter;
+    
+    return matchesSearch && matchesStatus && matchesRole;
   });
-  
-  // Handle form submission
-  const onSubmit = (data: EmployeeFormValues) => {
-    onSave({
-      ...data,
-      id: employee?.id || Date.now()
-    });
-    toast({
-      title: isEditing ? "Funcionário atualizado" : "Funcionário adicionado",
-      description: isEditing 
-        ? `${data.name} foi atualizado com sucesso.` 
-        : `${data.name} foi adicionado com sucesso.`,
-    });
-    onClose();
+
+  const form = useForm<z.infer<typeof employeeSchema>>({
+    resolver: zodResolver(employeeSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      phone: "",
+      role: "",
+      status: "active",
+      commission: 0,
+      specialties: [],
+      bio: "",
+      avatar: "",
+      schedule: {
+        monday: { active: true, start: "09:00", end: "18:00" },
+        tuesday: { active: true, start: "09:00", end: "18:00" },
+        wednesday: { active: true, start: "09:00", end: "18:00" },
+        thursday: { active: true, start: "09:00", end: "18:00" },
+        friday: { active: true, start: "09:00", end: "18:00" },
+        saturday: { active: true, start: "09:00", end: "14:00" },
+        sunday: { active: false, start: "00:00", end: "00:00" },
+      },
+    },
+  });
+
+  const onSubmit = (values: z.infer<typeof employeeSchema>) => {
+    if (editingEmployee) {
+      // Update existing employee
+      const updatedEmployees = employees.map(emp => 
+        emp.id === editingEmployee.id ? { ...values, id: emp.id, hireDate: emp.hireDate } : emp
+      );
+      setEmployees(updatedEmployees);
+      toast({
+        title: "Funcionário atualizado",
+        description: `${values.name} foi atualizado com sucesso.`,
+      });
+      setIsEditDialogOpen(false);
+    } else {
+      // Add new employee
+      const newEmployee = {
+        ...values,
+        id: `${employees.length + 1}`,
+        hireDate: new Date().toISOString().split('T')[0],
+      };
+      setEmployees([...employees, newEmployee]);
+      toast({
+        title: "Funcionário adicionado",
+        description: `${values.name} foi adicionado com sucesso.`,
+      });
+      setIsAddDialogOpen(false);
+    }
+    form.reset();
   };
-  
+
+  const handleDelete = () => {
+    if (employeeToDelete) {
+      const updatedEmployees = employees.filter(emp => emp.id !== employeeToDelete);
+      setEmployees(updatedEmployees);
+      toast({
+        title: "Funcionário removido",
+        description: "O funcionário foi removido com sucesso.",
+        variant: "destructive",
+      });
+      setIsDeleteDialogOpen(false);
+      setEmployeeToDelete(null);
+    }
+  };
+
+  const handleEditClick = (employee: Employee) => {
+    setEditingEmployee(employee);
+    form.reset(employee);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleViewClick = (employee: Employee) => {
+    setEmployeeToView(employee);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleDeleteClick = (employeeId: string) => {
+    setEmployeeToDelete(employeeId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleAddNew = () => {
+    setEditingEmployee(null);
+    form.reset({
+      name: "",
+      email: "",
+      phone: "",
+      role: "",
+      status: "active",
+      commission: 0,
+      specialties: [],
+      bio: "",
+      avatar: "",
+      schedule: {
+        monday: { active: true, start: "09:00", end: "18:00" },
+        tuesday: { active: true, start: "09:00", end: "18:00" },
+        wednesday: { active: true, start: "09:00", end: "18:00" },
+        thursday: { active: true, start: "09:00", end: "18:00" },
+        friday: { active: true, start: "09:00", end: "18:00" },
+        saturday: { active: true, start: "09:00", end: "14:00" },
+        sunday: { active: false, start: "00:00", end: "00:00" },
+      },
+    });
+    setIsAddDialogOpen(true);
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {isEditing ? 'Editar Funcionário' : 'Novo Funcionário'}
-          </DialogTitle>
-          <DialogDescription>
-            {isEditing ? 'Faça as alterações necessárias e salve.' : 'Preencha os dados do novo funcionário.'}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <Tabs defaultValue="basic" className="w-full">
-              <TabsList className="mb-4 grid grid-cols-3">
-                <TabsTrigger value="basic">Informações Básicas</TabsTrigger>
-                <TabsTrigger value="skills">Habilidades</TabsTrigger>
-                <TabsTrigger value="additional">Detalhes Adicionais</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="basic" className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nome completo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: Ana Silva" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Função</FormLabel>
-                        <Select 
-                          onValueChange={field.onChange} 
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione uma função" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {availableRoles.map((role) => (
-                              <SelectItem key={role} value={role}>{role}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Telefone</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Ex: (11) 98765-4321" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="email" 
-                            placeholder="Ex: ana.silva@email.com" 
-                            {...field} 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                        <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Ativo</FormLabel>
-                          <p className="text-sm text-muted-foreground">
-                            Funcionário está atualmente trabalhando
+    <div className="container py-6 space-y-6 animate-fade-in">
+      <div className="flex flex-col space-y-2 md:flex-row md:justify-between md:items-center md:space-y-0">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Funcionários</h1>
+          <p className="text-muted-foreground">Gerencie a equipe do seu salão.</p>
+        </div>
+        <Button 
+          onClick={handleAddNew} 
+          variant="default" 
+          size="sm" 
+          className="gap-2 transition-all duration-300 hover:shadow-md"
+        >
+          <Plus size={16} />
+          <span>Adicionar Funcionário</span>
+        </Button>
+      </div>
+
+      <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+        <div className="flex flex-1 items-center space-x-2 max-w-md">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Buscar funcionários..."
+              className="pl-8 transition-all duration-300 focus:shadow-md"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 items-center">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[130px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="active">Ativos</SelectItem>
+              <SelectItem value="inactive">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Função" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas</SelectItem>
+              {uniqueRoles.map(role => (
+                <SelectItem key={role} value={role}>{role}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center border rounded-md overflow-hidden">
+            <Button
+              variant={viewMode === "grid" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className="rounded-none border-0"
+              aria-label="Visualização em grade"
+            >
+              <Grid size={16} />
+            </Button>
+            <Button
+              variant={viewMode === "table" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setViewMode("table")}
+              className="rounded-none border-0"
+              aria-label="Visualização em tabela"
+            >
+              <List size={16} />
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <AnimatePresence mode="wait">
+        {viewMode === "grid" ? (
+          <motion.div
+            key="grid-view"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          >
+            {filteredEmployees.map(employee => (
+              <Card key={employee.id} className="overflow-hidden hover:shadow-md transition-shadow duration-300">
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="h-12 w-12 border-2 border-background">
+                        <AvatarImage src={employee.avatar} />
+                        <AvatarFallback className="bg-primary/10 text-primary">
+                          {employee.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <CardTitle className="text-lg">{employee.name}</CardTitle>
+                        <CardDescription>{employee.role}</CardDescription>
+                      </div>
+                    </div>
+                    <Badge variant={employee.status === "active" ? "default" : "secondary"}>
+                      {employee.status === "active" ? "Ativo" : "Inativo"}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="pb-3">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="truncate">{employee.email}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{employee.phone}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>Desde {format(new Date(employee.hireDate), 'dd/MM/yyyy')}</span>
+                    </div>
+                  </div>
+                  <div className="mt-3">
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {employee.specialties.slice(0, 2).map(specialty => (
+                        <Badge key={specialty} variant="outline" className="text-xs">
+                          {specialty}
+                        </Badge>
+                      ))}
+                      {employee.specialties.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{employee.specialties.length - 2} mais
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between pt-2 border-t">
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    onClick={() => handleViewClick(employee)}
+                    className="transition-transform duration-200 hover:scale-105"
+                  >
+                    <Eye size={16} className="mr-1" /> Ver
+                  </Button>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEditClick(employee)}
+                      className="transition-transform duration-200 hover:scale-105"
+                    >
+                      <Edit size={16} />
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => handleDeleteClick(employee.id)}
+                      className="transition-transform duration-200 hover:scale-105"
+                    >
+                      <Trash2 size={16} />
+                    </Button>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+            {filteredEmployees.length === 0 && (
+              <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
+                <User size={48} className="text-muted-foreground mb-4 opacity-20" />
+                <h3 className="text-lg font-medium">Nenhum funcionário encontrado</h3>
+                <p className="text-muted-foreground mt-1">
+                  Tente ajustar os filtros ou adicionar novos funcionários.
+                </p>
+                <Button 
+                  onClick={handleAddNew} 
+                  variant="default" 
+                  size="sm" 
+                  className="mt-4 gap-2"
+                >
+                  <Plus size={16} />
+                  <span>Adicionar Funcionário</span>
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="table-view"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3 }}
+            className="rounded-md border"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Funcionário</TableHead>
+                  <TableHead>Função</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead>Data Admissão</TableHead>
+                  <TableHead>Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map(employee => (
+                  <TableRow key={employee.id}>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={employee.avatar} />
+                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                            {employee.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="font-medium">{employee.name}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[150px]">
+                            {employee.email}
                           </p>
                         </div>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="commissionRate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Taxa de Comissão (%)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            min="0" 
-                            max="100" 
-                            placeholder="Ex: 30" 
-                            {...field}
-                            value={field.value.toString()}
-                            onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="skills" className="space-y-4">
+                      </div>
+                    </TableCell>
+                    <TableCell>{employee.role}</TableCell>
+                    <TableCell>
+                      <Badge variant={employee.status === "active" ? "default" : "secondary"}>
+                        {employee.status === "active" ? "Ativo" : "Inativo"}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{employee.phone}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">{format(new Date(employee.hireDate), 'dd/MM/yyyy')}</span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleViewClick(employee)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eye size={15} />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleEditClick(employee)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Edit size={15} />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          onClick={() => handleDeleteClick(employee.id)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Trash2 size={15} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {filteredEmployees.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center py-4">
+                        <User size={36} className="text-muted-foreground mb-2 opacity-20" />
+                        <p className="text-muted-foreground pb-2">Nenhum funcionário encontrado</p>
+                        <Button 
+                          onClick={handleAddNew} 
+                          variant="default" 
+                          size="sm" 
+                          className="gap-2"
+                        >
+                          <Plus size={16} />
+                          <span>Adicionar Funcionário</span>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Add Employee Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Adicionar Funcionário</DialogTitle>
+            <DialogDescription>
+              Preencha as informações para adicionar um novo funcionário ao salão.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="skills"
-                  render={() => (
-                    <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Habilidades e Especialidades</FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                          Selecione todas as habilidades que este funcionário possui
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {availableSkills.map((skill) => (
-                          <FormField
-                            key={skill}
-                            control={form.control}
-                            name="skills"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={skill}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(skill)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, skill])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== skill
-                                              )
-                                            )
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-sm font-normal">
-                                    {skill}
-                                  </FormLabel>
-                                </FormItem>
-                              )
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-              
-              <TabsContent value="additional" className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="bio"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Biografia / Descrição</FormLabel>
+                      <FormLabel>Nome completo</FormLabel>
                       <FormControl>
-                        <Textarea
-                          placeholder="Conte um pouco sobre a experiência e especialidades deste profissional..."
-                          className="resize-none min-h-[100px]"
-                          {...field}
-                        />
+                        <Input placeholder="Nome do funcionário" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
-                  name="availability"
-                  render={() => (
+                  name="email"
+                  render={({ field }) => (
                     <FormItem>
-                      <div className="mb-4">
-                        <FormLabel className="text-base">Dias de Trabalho</FormLabel>
-                        <p className="text-sm text-muted-foreground">
-                          Selecione os dias em que este funcionário trabalha
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                        {weekdays.map((day) => (
-                          <FormField
-                            key={day}
-                            control={form.control}
-                            name="availability"
-                            render={({ field }) => {
-                              return (
-                                <FormItem
-                                  key={day}
-                                  className="flex flex-row items-start space-x-3 space-y-0"
-                                >
-                                  <FormControl>
-                                    <Checkbox
-                                      checked={field.value?.includes(day)}
-                                      onCheckedChange={(checked) => {
-                                        return checked
-                                          ? field.onChange([...field.value, day])
-                                          : field.onChange(
-                                              field.value?.filter(
-                                                (value) => value !== day
-                                              )
-                                            )
-                                      }}
-                                    />
-                                  </FormControl>
-                                  <FormLabel className="text-sm font-normal">
-                                    {day}
-                                  </FormLabel>
-                                </FormItem>
-                              )
-                            }}
-                          />
-                        ))}
-                      </div>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="email@exemplo.com" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </TabsContent>
-            </Tabs>
-            
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button type="submit">
-                {isEditing ? 'Salvar alterações' : 'Adicionar funcionário'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-};
 
-// Component for employee details dialog
-const EmployeeDetailsDialog = ({ isOpen, onClose, employee, onEdit }) => {
-  if (!employee) return null;
-  
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(part => part[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-  
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <div className="flex items-center gap-3">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={employee.avatar} alt={employee.name} />
-                <AvatarFallback>{getInitials(employee.name)}</AvatarFallback>
-              </Avatar>
-              <span>{employee.name}</span>
-            </div>
-            <Badge variant={employee.isActive ? "success" : "secondary"} className="ml-auto">
-              {employee.isActive ? "Ativo" : "Inativo"}
-            </Badge>
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-medium">Função</h3>
-              <p className="mt-1">{employee.role}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium">Taxa de Comissão</h3>
-              <p className="mt-1">{employee.commissionRate}%</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium">Telefone</h3>
-              <p className="mt-1">{employee.phone}</p>
-            </div>
-            
-            <div>
-              <h3 className="text-sm font-medium">Email</h3>
-              <p className="mt-1">{employee.email}</p>
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium">Biografia</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {employee.bio || "Nenhuma biografia cadastrada."}
-            </p>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium mb-2">Habilidades</h3>
-            <div className="flex flex-wrap gap-2">
-              {employee.skills.map((skill, index) => (
-                <Badge key={index} variant="outline">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          </div>
-          
-          <div>
-            <h3 className="text-sm font-medium mb-2">Dias de Trabalho</h3>
-            <div className="flex flex-wrap gap-2">
-              {employee.availability.map((day, index) => (
-                <Badge key={index} variant="secondary">
-                  {day}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </div>
-        
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-          <Button 
-            variant="default" 
-            onClick={() => {
-              onClose();
-              onEdit(employee);
-            }}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Editar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(00) 00000-0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-// Component for delete confirmation dialog
-const DeleteConfirmDialog = ({ isOpen, onClose, employee, onConfirm }) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Confirmar exclusão</DialogTitle>
-          <DialogDescription>
-            Tem certeza que deseja excluir o funcionário "{employee?.name}"? Esta ação não pode ser desfeita.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button 
-            variant="destructive" 
-            onClick={() => {
-              onConfirm(employee?.id);
-              onClose();
-            }}
-          >
-            Excluir
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Função</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a função" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Cabeleireiro">Cabeleireiro(a)</SelectItem>
+                          <SelectItem value="Barbeiro">Barbeiro(a)</SelectItem>
+                          <SelectItem value="Manicure">Manicure</SelectItem>
+                          <SelectItem value="Esteticista">Esteticista</SelectItem>
+                          <SelectItem value="Maquiador">Maquiador(a)</SelectItem>
+                          <SelectItem value="Recepcionista">Recepcionista</SelectItem>
+                          <SelectItem value="Gerente">Gerente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-// Main Employees Page Component
-const EmployeesPage = () => {
-  const { toast } = useToast();
-  const [employees, setEmployees] = useState(mockEmployees);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'inactive'
-  const [filterRole, setFilterRole] = useState('all');
-  
-  // Dialog state
-  const [showAddEditDialog, setShowAddEditDialog] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
-  
-  // Filter and search employees
-  const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = 
-      employee.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-      employee.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      employee.email.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = 
-      filterStatus === 'all' || 
-      (filterStatus === 'active' && employee.isActive) || 
-      (filterStatus === 'inactive' && !employee.isActive);
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="active" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Ativo
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="inactive" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Inativo
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-    const matchesRole = 
-      filterRole === 'all' || 
-      employee.role === filterRole;
-    
-    return matchesSearch && matchesStatus && matchesRole;
-  });
-  
-  // Get unique roles for filtering
-  const uniqueRoles = Array.from(new Set(employees.map(employee => employee.role)));
-  
-  // Handlers for dialogs
-  const handleAddEditEmployee = (employee) => {
-    setShowAddEditDialog(true);
-    setSelectedEmployee(employee);
-  };
-  
-  const handleDeleteEmployee = (employee) => {
-    setShowDeleteDialog(true);
-    setSelectedEmployee(employee);
-  };
-  
-  const handleViewDetails = (employee) => {
-    setShowDetailsDialog(true);
-    setSelectedEmployee(employee);
-  };
-  
-  // Save employee (add or edit)
-  const saveEmployee = (employeeData) => {
-    if (employeeData.id && employees.some(e => e.id === employeeData.id)) {
-      // Edit existing employee
-      setEmployees(prev => 
-        prev.map(employee => 
-          employee.id === employeeData.id ? employeeData : employee
-        )
-      );
-    } else {
-      // Add new employee
-      setEmployees(prev => [...prev, employeeData]);
-    }
-  };
-  
-  // Confirm delete employee
-  const confirmDelete = (employeeId) => {
-    setEmployees(prev => prev.filter(employee => employee.id !== employeeId));
-    toast({
-      title: "Funcionário excluído",
-      description: "O funcionário foi excluído com sucesso."
-    });
-  };
-  
-  // Animation variants
-  const containerAnimation = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-  
-  const itemAnimation = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 },
-  };
-  
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Sidebar>
-        <SidebarMenu />
-        <div className="mt-auto mb-4 px-3">
-          <ThemeToggle />
-        </div>
-      </Sidebar>
-      
-      <main className="md:pl-[240px] pt-16 pb-20 md:pb-12 px-4 md:px-8 transition-all duration-300">
-        <div className="max-w-7xl mx-auto">
-          <motion.div
-            variants={containerAnimation}
-            initial="hidden"
-            animate="show"
-            className="space-y-8"
-          >
-            <motion.div 
-              variants={itemAnimation}
-              className="flex flex-col md:flex-row md:items-center justify-between gap-4"
-            >
-              <div>
-                <h1 className="text-2xl md:text-3xl font-display font-bold text-gray-900 dark:text-white">
-                  Funcionários
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
-                  Gerencie a equipe do seu salão
-                </p>
+                <FormField
+                  control={form.control}
+                  name="commission"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comissão (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Ex: 30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Porcentagem de comissão sobre os serviços.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
-              
-              <Button 
-                className="flex items-center gap-2"
-                onClick={() => {
-                  setSelectedEmployee(null);
-                  setShowAddEditDialog(true);
-                }}
-              >
-                <UserPlus className="w-5 h-5" />
-                <span>Novo funcionário</span>
-              </Button>
-            </motion.div>
-            
-            <motion.div 
-              variants={itemAnimation}
-              className="space-y-4"
+
+              <FormField
+                control={form.control}
+                name="specialties"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel>Especialidades</FormLabel>
+                      <FormDescription>
+                        Selecione as especialidades do funcionário.
+                      </FormDescription>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {specialties.map((specialty) => (
+                        <FormField
+                          key={specialty}
+                          control={form.control}
+                          name="specialties"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={specialty}
+                                className="flex flex-row items-start space-x-2 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(specialty)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, specialty])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== specialty
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal text-sm cursor-pointer">
+                                  {specialty}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Biografia</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Descrição sobre o profissional e suas habilidades..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Essa descrição será exibida no perfil público do profissional.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsAddDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">Salvar Funcionário</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Employee Dialog - Similar to Add with pre-filled data */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Editar Funcionário</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do funcionário.
+            </DialogDescription>
+          </DialogHeader>
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Same form fields as Add Dialog */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome completo</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nome do funcionário" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="email@exemplo.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Telefone</FormLabel>
+                      <FormControl>
+                        <Input placeholder="(00) 00000-0000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Função</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione a função" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Cabeleireiro">Cabeleireiro(a)</SelectItem>
+                          <SelectItem value="Barbeiro">Barbeiro(a)</SelectItem>
+                          <SelectItem value="Manicure">Manicure</SelectItem>
+                          <SelectItem value="Esteticista">Esteticista</SelectItem>
+                          <SelectItem value="Maquiador">Maquiador(a)</SelectItem>
+                          <SelectItem value="Recepcionista">Recepcionista</SelectItem>
+                          <SelectItem value="Gerente">Gerente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="flex space-x-4"
+                        >
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="active" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Ativo
+                            </FormLabel>
+                          </FormItem>
+                          <FormItem className="flex items-center space-x-2 space-y-0">
+                            <FormControl>
+                              <RadioGroupItem value="inactive" />
+                            </FormControl>
+                            <FormLabel className="font-normal cursor-pointer">
+                              Inativo
+                            </FormLabel>
+                          </FormItem>
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="commission"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comissão (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          placeholder="Ex: 30"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Porcentagem de comissão sobre os serviços.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="specialties"
+                render={() => (
+                  <FormItem>
+                    <div className="mb-4">
+                      <FormLabel>Especialidades</FormLabel>
+                      <FormDescription>
+                        Selecione as especialidades do funcionário.
+                      </FormDescription>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {specialties.map((specialty) => (
+                        <FormField
+                          key={specialty}
+                          control={form.control}
+                          name="specialties"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={specialty}
+                                className="flex flex-row items-start space-x-2 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(specialty)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([...field.value, specialty])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== specialty
+                                            )
+                                          )
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="font-normal text-sm cursor-pointer">
+                                  {specialty}
+                                </FormLabel>
+                              </FormItem>
+                            )
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="bio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Biografia</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Descrição sobre o profissional e suas habilidades..."
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Essa descrição será exibida no perfil público do profissional.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setIsEditDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit">Atualizar Funcionário</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir este funcionário? Esta ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
             >
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    placeholder="Buscar funcionários..."
-                    className="pl-9"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+              Cancelar
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={handleDelete}
+            >
+              Excluir
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Employee Details Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Detalhes do Funcionário</DialogTitle>
+          </DialogHeader>
+          
+          {employeeToView && (
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex flex-col items-center">
+                  <Avatar className="h-32 w-32 border-2">
+                    <AvatarImage src={employeeToView.avatar} alt={employeeToView.name} />
+                    <AvatarFallback className="text-2xl">
+                      {employeeToView.name.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Badge 
+                    variant={employeeToView.status === "active" ? "default" : "secondary"}
+                    className="mt-3"
+                  >
+                    {employeeToView.status === "active" ? "Ativo" : "Inativo"}
+                  </Badge>
                 </div>
                 
-                <div className="flex gap-2 flex-wrap md:flex-nowrap">
-                  <Select
-                    defaultValue="all"
-                    onValueChange={setFilterStatus}
-                  >
-                    <SelectTrigger className="w-full sm:w-[150px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      <SelectItem value="active">Ativos</SelectItem>
-                      <SelectItem value="inactive">Inativos</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex-1 space-y-4">
+                  <div>
+                    <h2 className="text-2xl font-bold">{employeeToView.name}</h2>
+                    <p className="text-muted-foreground">{employeeToView.role}</p>
+                  </div>
                   
-                  <Select
-                    defaultValue="all"
-                    onValueChange={setFilterRole}
-                  >
-                    <SelectTrigger className="w-full sm:w-[180px]">
-                      <SelectValue placeholder="Função" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as funções</SelectItem>
-                      {uniqueRoles.map(role => (
-                        <SelectItem key={role} value={role}>
-                          {role}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  <div className="flex border rounded-md overflow-hidden">
-                    <Button
-                      variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                      size="sm"
-                      className="rounded-none h-10 px-3"
-                      onClick={() => setViewMode('grid')}
-                    >
-                      <Coffee className="h-4 w-4" />
-                      <span className="sr-only">Visualização em grade</span>
-                    </Button>
-                    <Button
-                      variant={viewMode === 'table' ? 'default' : 'ghost'}
-                      size="sm"
-                      className="rounded-none h-10 px-3"
-                      onClick={() => setViewMode('table')}
-                    >
-                      <Scissors className="h-4 w-4" />
-                      <span className="sr-only">Visualização em tabela</span>
-                    </Button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{employeeToView.email}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>{employeeToView.phone}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span>Desde {format(new Date(employeeToView.hireDate), 'dd/MM/yyyy')}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-muted-foreground mr-2">Comissão:</span>
+                      <span>{employeeToView.commission}%</span>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredEmployees.length > 0 ? (
-                    filteredEmployees.map(employee => (
-                      <EmployeeCard
-                        key={employee.id}
-                        employee={employee}
-                        onEdit={handleAddEditEmployee}
-                        onDelete={handleDeleteEmployee}
-                        onViewDetails={handleViewDetails}
-                      />
-                    ))
-                  ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
-                      <UserPlus className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                        Nenhum funcionário encontrado
-                      </h3>
-                      <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-md">
-                        {searchQuery || filterStatus !== 'all' || filterRole !== 'all' ? 
-                          `Não encontramos funcionários correspondentes aos filtros aplicados.` : 
-                          "Você ainda não cadastrou nenhum funcionário. Clique em 'Novo funcionário' para começar."}
-                      </p>
-                    </div>
-                  )}
+              <div>
+                <h3 className="font-medium mb-2">Especialidades</h3>
+                <div className="flex flex-wrap gap-2">
+                  {employeeToView.specialties.map(specialty => (
+                    <Badge key={specialty} variant="outline">
+                      {specialty}
+                    </Badge>
+                  ))}
                 </div>
-              ) : (
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[250px]">Nome / Função</TableHead>
-                        <TableHead>Contato</TableHead>
-                        <TableHead>Habilidades</TableHead>
-                        <TableHead className="w-24 text-center">Status</TableHead>
-                        <TableHead className="w-24 text-center">Comissão</TableHead>
-                        <TableHead className="text-right">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredEmployees.length > 0 ? (
-                        filteredEmployees.map(employee => (
-                          <TableRow key={employee.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8">
-                                  <AvatarFallback>
-                                    {employee.name.split(' ').map(part => part[0]).join('').toUpperCase().substring(0, 2)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div>
-                                  <div className="font-medium">{employee.name}</div>
-                                  <div className="text-sm text-muted-foreground">{employee.role}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                <div className="flex items-center gap-1">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{employee.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-1 mt-1">
-                                  <Mail className="h-3 w-3" />
-                                  <span>{employee.email}</span>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap gap-1">
-                                {employee.skills.slice(0, 2).map((skill, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
-                                    {skill}
-                                  </Badge>
-                                ))}
-                                {employee.skills.length > 2 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    +{employee.skills.length - 2}
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <Badge variant={employee.isActive ? "success" : "secondary"}>
-                                {employee.isActive ? "Ativo" : "Inativo"}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="text-center font-medium">
-                              {employee.commissionRate}%
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleViewDetails(employee)}
-                                >
-                                  Detalhes
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleAddEditEmployee(employee)}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                  <span className="sr-only">Editar</span>
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                                  onClick={() => handleDeleteEmployee(employee)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                  <span className="sr-only">Excluir</span>
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableRow>
-                          <TableCell colSpan={6} className="h-24 text-center">
-                            <div className="flex flex-col items-center justify-center py-6">
-                              <UserPlus className="w-8 h-8 text-gray-300 dark:text-gray-600 mb-2" />
-                              <p className="text-sm text-muted-foreground">
-                                Nenhum funcionário encontrado
-                              </p>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
+              </div>
+              
+              {employeeToView.bio && (
+                <div>
+                  <h3 className="font-medium mb-2">Biografia</h3>
+                  <p className="text-sm text-muted-foreground">{employeeToView.bio}</p>
                 </div>
               )}
-            </motion.div>
-          </motion.div>
-        </div>
-      </main>
-      
-      <BottomNav />
-      
-      {/* Employee Form Dialog */}
-      <EmployeeFormDialog
-        isOpen={showAddEditDialog}
-        onClose={() => setShowAddEditDialog(false)}
-        employee={selectedEmployee}
-        onSave={saveEmployee}
-      />
-      
-      {/* Employee Details Dialog */}
-      <EmployeeDetailsDialog
-        isOpen={showDetailsDialog}
-        onClose={() => setShowDetailsDialog(false)}
-        employee={selectedEmployee}
-        onEdit={handleAddEditEmployee}
-      />
-      
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        employee={selectedEmployee}
-        onConfirm={confirmDelete}
-      />
+              
+              <div>
+                <h3 className="font-medium mb-3">Horário de Trabalho</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {Object.entries(employeeToView.schedule).map(([day, schedule]) => (
+                    <div key={day} className="flex items-center justify-between p-2 rounded-md border">
+                      <span className="capitalize">{day === 'monday' ? 'Segunda' : 
+                                               day === 'tuesday' ? 'Terça' : 
+                                               day === 'wednesday' ? 'Quarta' : 
+                                               day === 'thursday' ? 'Quinta' : 
+                                               day === 'friday' ? 'Sexta' : 
+                                               day === 'saturday' ? 'Sábado' : 'Domingo'}</span>
+                      {schedule.active ? (
+                        <span>{schedule.start} - {schedule.end}</span>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Folga</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button 
+                  type="button" 
+                  variant="default" 
+                  onClick={() => handleEditClick(employeeToView)}
+                >
+                  <Edit size={16} className="mr-2" /> Editar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
