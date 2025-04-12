@@ -15,7 +15,8 @@ export function ThemeToggle() {
     
     toast({
       title: `Modo ${newTheme === 'dark' ? 'escuro' : 'claro'} ativado`,
-      description: `Alterado para o tema ${newTheme === 'dark' ? 'escuro' : 'claro'}`,
+      description: `O tema foi alterado para o modo ${newTheme === 'dark' ? 'escuro' : 'claro'}`,
+      variant: "success",
     });
   };
   
@@ -24,7 +25,7 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full border-sidebar-accent transition-all duration-200 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      className="rounded-full border-sidebar-accent transition-all duration-300 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:scale-110"
       aria-label="Alternar tema"
     >
       <motion.div
@@ -34,9 +35,9 @@ export function ThemeToggle() {
         className="relative h-5 w-5"
       >
         {theme === "light" ? (
-          <Sun className="absolute h-5 w-5 transform rotate-0 transition-all" />
+          <Sun className="absolute h-5 w-5 transform rotate-0 transition-all text-amber-500" />
         ) : (
-          <Moon className="absolute h-5 w-5 transform rotate-180 transition-all" />
+          <Moon className="absolute h-5 w-5 transform rotate-180 transition-all text-indigo-400" />
         )}
       </motion.div>
     </Button>
