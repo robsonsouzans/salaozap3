@@ -28,6 +28,12 @@ const buttonVariants = cva(
         service: "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm",
         "service-outline": "border border-emerald-500 text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20",
         "service-ghost": "text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/20",
+        success: "bg-green-500 text-white hover:bg-green-600 shadow-sm",
+        "success-outline": "border border-green-500 text-green-500 hover:bg-green-50 dark:hover:bg-green-950/20",
+        warning: "bg-amber-500 text-white hover:bg-amber-600 shadow-sm",
+        "warning-outline": "border border-amber-500 text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/20",
+        info: "bg-blue-500 text-white hover:bg-blue-600 shadow-sm",
+        "info-outline": "border border-blue-500 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -35,10 +41,17 @@ const buttonVariants = cva(
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10",
       },
+      animation: {
+        none: "",
+        pulse: "animate-pulse",
+        bounce: "animate-bounce",
+        shine: "animate-shine overflow-hidden relative before:absolute before:inset-0 before:-translate-x-full before:animate-[shine_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
+      }
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      animation: "none",
     },
   }
 )
@@ -50,11 +63,11 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, animation, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
     return (
       <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
+        className={cn(buttonVariants({ variant, size, animation, className }))}
         ref={ref}
         {...props}
       />

@@ -7,7 +7,7 @@ import {
   Clock, MapPin, Calendar, 
   DollarSign, ChevronDown, ChevronRight,
   BarChart2, Bell, MessageSquare, Heart,
-  Star, FileText, Home, Search
+  Star, FileText, Home, Search, UserPlus
 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { getCurrentUser } from '@/lib/auth';
@@ -275,7 +275,7 @@ const SidebarMenu = () => {
         title="Configurações" 
         path="/settings"
       >
-        <SubMenuItem title="Sistema" path="/settings/profile" />
+        <SubMenuItem title="Sistema" path="/settings/system" />
         <SubMenuItem title="Integrações" path="/settings/integrations" />
         <SubMenuItem title="Segurança" path="/settings/security" />
       </MenuItem>
