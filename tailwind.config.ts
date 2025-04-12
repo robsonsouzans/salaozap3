@@ -160,6 +160,9 @@ export default {
 				'slide-out': {
 					'0%': { transform: 'translateX(0)', opacity: '1' },
 					'100%': { transform: 'translateX(100%)', opacity: '0' }
+				},
+				'shine': {
+					'100%': { left: '125%' }
 				}
 			},
 			animation: {
@@ -179,7 +182,8 @@ export default {
 				'fade-out': 'fade-out 0.5s ease-in-out',
 				'rotate': 'rotate 2s linear infinite',
 				'slide-in': 'slide-in 0.3s ease-out',
-				'slide-out': 'slide-out 0.3s ease-in'
+				'slide-out': 'slide-out 0.3s ease-in',
+				'shine': 'shine 2s infinite'
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
