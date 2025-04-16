@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, UserPlus, Grid, List, 
-  Edit, Trash2, X, CheckCircle, Phone, Mail,
-  Calendar, DollarSign, Star, Clock
+  Edit, Trash2, Mail, Phone,
+  Calendar, DollarSign, Star, Clock, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -47,6 +46,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
+import { Progress } from '@/components/ui/progress';
 import { getCurrentUser } from '@/lib/auth';
 
 // Define proper Employee type
@@ -93,6 +93,7 @@ const EmployeesPage: React.FC = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
+  const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   
   // Fixed sample data with proper status values
   const [employees, setEmployees] = useState<Employee[]>([
@@ -187,6 +188,7 @@ const EmployeesPage: React.FC = () => {
   
   // Add form validation step
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -241,85 +243,112 @@ const EmployeesPage: React.FC = () => {
   });
   
   const handleAddEmployee = () => {
-    if (!validateForm()) return;
+    setIsSubmitting(true);
     
-    const newEmployee: Employee = {
-      id: Date.now().toString(),
-      name: formData.name || '',
-      avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
-      role: formData.role || '',
-      phone: formData.phone || '',
-      email: formData.email || '',
-      status: formData.status || "active",
-      specialties: formData.specialties || [],
-      hireDate: new Date().toISOString().split('T')[0],
-      commission: formData.commission || 20,
-      schedule: formData.schedule || {
-        monday: { active: true, start: '09:00', end: '18:00' },
-        tuesday: { active: true, start: '09:00', end: '18:00' },
-        wednesday: { active: true, start: '09:00', end: '18:00' },
-        thursday: { active: true, start: '09:00', end: '18:00' },
-        friday: { active: true, start: '09:00', end: '18:00' },
-        saturday: { active: true, start: '09:00', end: '14:00' },
-        sunday: { active: false, start: '09:00', end: '18:00' }
-      },
-      bio: formData.bio || ''
-    };
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
     
-    setEmployees([...employees, newEmployee]);
-    setShowAddDialog(false);
-    resetForm();
-    
-    toast({
-      title: "Funcionário adicionado",
-      description: `${newEmployee.name} foi adicionado com sucesso.`,
-      variant: "success",
-    });
+    // Simulate loading
+    setTimeout(() => {
+      const newEmployee: Employee = {
+        id: Date.now().toString(),
+        name: formData.name || '',
+        avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+        role: formData.role || '',
+        phone: formData.phone || '',
+        email: formData.email || '',
+        status: formData.status || "active",
+        specialties: formData.specialties || [],
+        hireDate: new Date().toISOString().split('T')[0],
+        commission: formData.commission || 20,
+        schedule: formData.schedule || {
+          monday: { active: true, start: '09:00', end: '18:00' },
+          tuesday: { active: true, start: '09:00', end: '18:00' },
+          wednesday: { active: true, start: '09:00', end: '18:00' },
+          thursday: { active: true, start: '09:00', end: '18:00' },
+          friday: { active: true, start: '09:00', end: '18:00' },
+          saturday: { active: true, start: '09:00', end: '14:00' },
+          sunday: { active: false, start: '09:00', end: '18:00' }
+        },
+        bio: formData.bio || ''
+      };
+      
+      setEmployees([...employees, newEmployee]);
+      setShowAddDialog(false);
+      resetForm();
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Funcionário adicionado",
+        description: `${newEmployee.name} foi adicionado com sucesso.`,
+        variant: "success",
+      });
+    }, 600);
   };
   
   const handleEditEmployee = () => {
-    if (!currentEmployee || !validateForm()) return;
+    setIsSubmitting(true);
     
-    const updatedEmployees = employees.map(emp => 
-      emp.id === currentEmployee.id 
-        ? {
-            ...emp,
-            name: formData.name || emp.name,
-            role: formData.role || emp.role,
-            phone: formData.phone || emp.phone,
-            email: formData.email || emp.email,
-            status: formData.status || emp.status,
-            specialties: formData.specialties || emp.specialties,
-            commission: formData.commission || emp.commission,
-            schedule: formData.schedule || emp.schedule,
-            bio: formData.bio || emp.bio
-          }
-        : emp
-    );
+    if (!currentEmployee || !validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
     
-    setEmployees(updatedEmployees);
-    setShowEditDialog(false);
-    resetForm();
-    
-    toast({
-      title: "Funcionário atualizado",
-      description: `As informações de ${formData.name} foram atualizadas com sucesso.`,
-      variant: "success",
-    });
+    // Simulate loading
+    setTimeout(() => {
+      const updatedEmployees = employees.map(emp => 
+        emp.id === currentEmployee.id 
+          ? {
+              ...emp,
+              name: formData.name || emp.name,
+              role: formData.role || emp.role,
+              phone: formData.phone || emp.phone,
+              email: formData.email || emp.email,
+              status: formData.status || emp.status,
+              specialties: formData.specialties || emp.specialties,
+              commission: formData.commission || emp.commission,
+              schedule: formData.schedule || emp.schedule,
+              bio: formData.bio || emp.bio
+            }
+          : emp
+      );
+      
+      setEmployees(updatedEmployees);
+      setShowEditDialog(false);
+      resetForm();
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Funcionário atualizado",
+        description: `As informações de ${formData.name} foram atualizadas com sucesso.`,
+        variant: "success",
+      });
+    }, 600);
   };
   
   const handleDeleteEmployee = () => {
-    if (!currentEmployee) return;
+    setIsSubmitting(true);
     
-    const updatedEmployees = employees.filter(emp => emp.id !== currentEmployee.id);
-    setEmployees(updatedEmployees);
-    setShowDeleteDialog(false);
+    if (!currentEmployee) {
+      setIsSubmitting(false);
+      return;
+    }
     
-    toast({
-      title: "Funcionário removido",
-      description: `${currentEmployee.name} foi removido com sucesso.`,
-      variant: "info",
-    });
+    // Simulate loading
+    setTimeout(() => {
+      const updatedEmployees = employees.filter(emp => emp.id !== currentEmployee.id);
+      setEmployees(updatedEmployees);
+      setShowDeleteDialog(false);
+      setIsSubmitting(false);
+      
+      toast({
+        title: "Funcionário removido",
+        description: `${currentEmployee.name} foi removido com sucesso.`,
+        variant: "info",
+      });
+    }, 600);
   };
   
   const openEditDialog = (employee: Employee) => {
@@ -419,10 +448,18 @@ const EmployeesPage: React.FC = () => {
     }));
   };
   
+  const toggleExpandEmployee = (employeeId: string) => {
+    if (expandedEmployeeId === employeeId) {
+      setExpandedEmployeeId(null);
+    } else {
+      setExpandedEmployeeId(employeeId);
+    }
+  };
+  
   return (
     <div className="container mx-auto p-4 py-6 max-w-7xl">
       <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold mb-2">Funcionários</h1>
+        <h1 className="text-3xl font-bold mb-2 text-gradient">Funcionários</h1>
         <p className="text-muted-foreground">Gerencie sua equipe, adicione novos profissionais e acompanhe seu desempenho.</p>
       </div>
       
@@ -432,7 +469,7 @@ const EmployeesPage: React.FC = () => {
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Buscar funcionários por nome, email ou função..."
-            className="pl-10"
+            className="pl-10 focus-animation"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -441,7 +478,7 @@ const EmployeesPage: React.FC = () => {
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" animation="shine" className="flex items-center gap-2 bg-background/80 backdrop-blur-sm shadow-sm">
                 <Filter className="h-4 w-4" />
                 Filtros
               </Button>
@@ -475,7 +512,7 @@ const EmployeesPage: React.FC = () => {
                   value={specializationFilter} 
                   onValueChange={setSpecializationFilter}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="focus-animation">
                     <SelectValue placeholder="Todas especialidades" />
                   </SelectTrigger>
                   <SelectContent>
@@ -491,7 +528,7 @@ const EmployeesPage: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <div className="flex border rounded-md overflow-hidden">
+          <div className="flex border rounded-md overflow-hidden shadow-sm bg-background/80 backdrop-blur-sm">
             <Button 
               variant="ghost" 
               className={`rounded-none px-3 ${view === 'grid' ? 'bg-muted' : ''}`}
@@ -511,6 +548,7 @@ const EmployeesPage: React.FC = () => {
           <Button 
             variant="salon" 
             className="flex items-center gap-2" 
+            animation="shine"
             onClick={() => {
               resetForm();
               setShowAddDialog(true);
@@ -525,17 +563,23 @@ const EmployeesPage: React.FC = () => {
       
       {/* Employees List */}
       {filteredEmployees.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="bg-muted w-16 h-16 rounded-full flex items-center justify-center mb-4">
-            <UserPlus className="h-8 w-8 text-muted-foreground" />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center justify-center py-12 text-center"
+        >
+          <div className="bg-gradient-to-br from-salon-100 to-salon-200 dark:from-salon-800 dark:to-salon-700 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-xl">
+            <UserPlus className="h-8 w-8 text-salon-600 dark:text-salon-300" />
           </div>
-          <h3 className="text-lg font-medium mb-2">Nenhum funcionário encontrado</h3>
+          <h3 className="text-xl font-medium mb-2">Nenhum funcionário encontrado</h3>
           <p className="text-muted-foreground max-w-md">
             Não encontramos nenhum funcionário com os filtros aplicados. Tente outro termo de busca ou adicione um novo funcionário.
           </p>
           <Button 
             variant="salon"
-            className="mt-6" 
+            animation="shine"
+            className="mt-6 shadow-md hover:shadow-lg transition-all" 
             onClick={() => {
               resetForm();
               setShowAddDialog(true);
@@ -544,7 +588,7 @@ const EmployeesPage: React.FC = () => {
             <UserPlus className="h-4 w-4 mr-2" />
             Adicionar Funcionário
           </Button>
-        </div>
+        </motion.div>
       ) : (
         <AnimatePresence mode="wait">
           {view === 'grid' ? (
@@ -554,24 +598,23 @@ const EmployeesPage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {filteredEmployees.map(employee => (
+              {filteredEmployees.map((employee, index) => (
                 <motion.div
                   key={employee.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  whileHover={{ y: -5, boxShadow: '0 10px 30px -15px rgba(0, 0, 0, 0.1)' }}
-                  className="transition-all duration-300"
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="hover-lift"
                 >
-                  <Card className="overflow-hidden h-full border-l-4 hover:border-salon-500 transition-colors">
+                  <Card className="overflow-hidden h-full border-0 glass-card hover:shadow-xl dark:hover:shadow-salon-500/5 transition-all duration-500">
                     <CardContent className="p-0">
                       <div className="relative pb-3">
-                        <div className="h-24 bg-gradient-to-r from-salon-100 to-salon-200 dark:from-salon-900 dark:to-salon-800"></div>
-                        <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-20 h-20 border-4 border-background">
+                        <div className="h-24 bg-gradient-to-r from-salon-400/40 to-salon-600/40 dark:from-salon-700/40 dark:to-salon-900/40 backdrop-blur-sm"></div>
+                        <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-20 h-20 border-4 border-background shadow-lg">
                           <AvatarImage src={employee.avatar} alt={employee.name} />
-                          <AvatarFallback className="text-xl">
+                          <AvatarFallback className="text-xl bg-gradient-to-br from-salon-400 to-salon-600 text-white">
                             {employee.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
@@ -579,18 +622,18 @@ const EmployeesPage: React.FC = () => {
                           <Button 
                             variant="secondary" 
                             size="icon"
-                            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-background"
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-sm"
                             onClick={() => openEditDialog(employee)}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3.5 w-3.5 text-salon-600 dark:text-salon-400" />
                           </Button>
                           <Button 
                             variant="destructive" 
                             size="icon"
-                            className="h-8 w-8 rounded-full bg-background/80 backdrop-blur-sm hover:bg-destructive"
+                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-destructive shadow-sm"
                             onClick={() => openDeleteDialog(employee)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       </div>
@@ -603,7 +646,7 @@ const EmployeesPage: React.FC = () => {
                           </div>
                           <Badge 
                             variant={employee.status === "active" ? "success" : "secondary"}
-                            className="ml-auto"
+                            className={`ml-auto ${employee.status === "active" ? "animate-pulse" : ""}`}
                           >
                             {employee.status === "active" ? "Ativo" : "Inativo"}
                           </Badge>
@@ -611,35 +654,71 @@ const EmployeesPage: React.FC = () => {
                         
                         <div className="space-y-2 mt-4">
                           <div className="flex items-center text-sm">
-                            <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Mail className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
                             <span>{employee.email}</span>
                           </div>
                           <div className="flex items-center text-sm">
-                            <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Phone className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
                             <span>{employee.phone}</span>
                           </div>
                           <div className="flex items-center text-sm">
-                            <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <Calendar className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
                             <span>Contratado em {formatDate(employee.hireDate)}</span>
                           </div>
                           <div className="flex items-center text-sm">
-                            <DollarSign className="h-4 w-4 mr-2 text-muted-foreground" />
+                            <DollarSign className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
                             <span>Comissão de {employee.commission}%</span>
                           </div>
                         </div>
                         
-                        <div className="mt-4">
-                          <p className="text-sm text-muted-foreground mb-2 flex items-center">
+                        <Separator className="my-4 bg-salon-100 dark:bg-salon-800/50" />
+                        
+                        <div>
+                          <p className="text-sm font-medium mb-2 flex items-center text-salon-600 dark:text-salon-400">
                             <Star className="h-4 w-4 mr-1 inline" /> Especialidades
                           </p>
-                          <div className="flex flex-wrap gap-1">
+                          <div className="flex flex-wrap gap-1.5">
                             {employee.specialties.map(specialty => (
-                              <Badge key={specialty} variant="outline" className="text-xs">
+                              <Badge key={specialty} variant="outline" className="text-xs bg-salon-50 dark:bg-salon-900/50 border-salon-200 dark:border-salon-700 text-salon-700 dark:text-salon-300 hover:bg-salon-100 dark:hover:bg-salon-800/70 transition-colors">
                                 {specialty}
                               </Badge>
                             ))}
                           </div>
                         </div>
+                        
+                        {employee.bio && (
+                          <div className="mt-4">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="w-full text-xs flex justify-between items-center p-2 text-salon-600 dark:text-salon-400"
+                              onClick={() => toggleExpandEmployee(employee.id)}
+                            >
+                              {expandedEmployeeId === employee.id ? "Esconder bio" : "Ver bio"}
+                              {expandedEmployeeId === employee.id ? (
+                                <ChevronUp className="h-3 w-3" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3" />  
+                              )}
+                            </Button>
+                            
+                            <AnimatePresence>
+                              {expandedEmployeeId === employee.id && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="overflow-hidden"
+                                >
+                                  <p className="text-sm text-muted-foreground mt-2 bg-salon-50/50 dark:bg-salon-900/20 p-3 rounded-md">
+                                    {employee.bio}
+                                  </p>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -653,528 +732,14 @@ const EmployeesPage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="rounded-md border overflow-hidden"
+              className="rounded-xl border-0 glass-card overflow-hidden shadow-lg"
             >
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-muted">
+                  <thead className="bg-salon-100/50 dark:bg-salon-800/30 backdrop-blur-sm">
                     <tr>
-                      <th className="py-3 px-4 text-left font-medium">Funcionário</th>
-                      <th className="py-3 px-4 text-left font-medium">Contato</th>
-                      <th className="py-3 px-4 text-left font-medium">Especialidades</th>
-                      <th className="py-3 px-4 text-left font-medium">Comissão</th>
-                      <th className="py-3 px-4 text-left font-medium">Status</th>
-                      <th className="py-3 px-4 text-right font-medium">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {filteredEmployees.map(employee => (
-                      <motion.tr 
-                        key={employee.id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.2 }}
-                        className="hover:bg-muted/50"
-                      >
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={employee.avatar} alt={employee.name} />
-                              <AvatarFallback>
-                                {employee.name.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{employee.name}</p>
-                              <p className="text-xs text-muted-foreground">{employee.role}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="space-y-1">
-                            <p className="text-xs flex items-center">
-                              <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {employee.email}
-                            </p>
-                            <p className="text-xs flex items-center">
-                              <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
-                              {employee.phone}
-                            </p>
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex flex-wrap gap-1 max-w-[200px]">
-                            {employee.specialties.map(specialty => (
-                              <Badge key={specialty} variant="outline" className="text-xs">
-                                {specialty}
-                              </Badge>
-                            ))}
-                          </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-medium">{employee.commission}%</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge 
-                            variant={employee.status === "active" ? "success" : "secondary"}
-                          >
-                            {employee.status === "active" ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => openEditDialog(employee)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon"
-                              className="h-8 w-8 text-destructive hover:text-destructive"
-                              onClick={() => openDeleteDialog(employee)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
-      
-      {/* Add Employee Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Adicionar novo funcionário</DialogTitle>
-            <DialogDescription>
-              Preencha as informações abaixo para adicionar um novo funcionário à sua equipe.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            {/* Left column - Basic info */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome completo*</Label>
-                <Input 
-                  id="name" 
-                  value={formData.name || ''} 
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? 'border-destructive' : ''}
-                />
-                {formErrors.name && (
-                  <p className="text-xs text-destructive">{formErrors.name}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="role">Função*</Label>
-                <Input 
-                  id="role" 
-                  value={formData.role || ''} 
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? 'border-destructive' : ''}
-                />
-                {formErrors.role && (
-                  <p className="text-xs text-destructive">{formErrors.role}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="email">Email*</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={formData.email || ''} 
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? 'border-destructive' : ''}
-                />
-                {formErrors.email && (
-                  <p className="text-xs text-destructive">{formErrors.email}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone">Telefone*</Label>
-                <Input 
-                  id="phone" 
-                  value={formData.phone || ''} 
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? 'border-destructive' : ''}
-                />
-                {formErrors.phone && (
-                  <p className="text-xs text-destructive">{formErrors.phone}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="commission">Comissão (%)</Label>
-                <Input 
-                  id="commission" 
-                  type="number" 
-                  min="0" 
-                  max="100" 
-                  value={formData.commission || 20} 
-                  onChange={(e) => handleInputChange('commission', Number(e.target.value))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2">
-                  <RadioGroup 
-                    value={formData.status || "active"} 
-                    onValueChange={(value) => handleInputChange('status', value as "active" | "inactive")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="active" id="status-active" />
-                      <Label htmlFor="status-active">Ativo</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="inactive" id="status-inactive" />
-                      <Label htmlFor="status-inactive">Inativo</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="bio">Biografia</Label>
-                <Textarea 
-                  id="bio" 
-                  value={formData.bio || ''} 
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className="min-h-[100px]"
-                />
-              </div>
-            </div>
-            
-            {/* Right column - Specialties and Schedule */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Especialidades</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {specialtiesList.map(specialty => (
-                    <div key={specialty} className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id={`specialty-${specialty}`} 
-                        className="rounded text-salon-500 focus:ring-salon-500"
-                        checked={(formData.specialties || []).includes(specialty)}
-                        onChange={() => handleSpecialtyToggle(specialty)}
-                      />
-                      <Label htmlFor={`specialty-${specialty}`} className="text-sm font-normal">
-                        {specialty}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Horário de trabalho</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Defina os dias e horários que o funcionário estará disponível.
-                </p>
-                
-                <div className="space-y-3">
-                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day, index) => {
-                    const dayNames = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-                    const schedule = formData.schedule && formData.schedule[day as keyof typeof formData.schedule];
-                    
-                    return (
-                      <div key={day} className="flex items-center gap-3">
-                        <div className="w-24 text-sm">{dayNames[index]}</div>
-                        <div className="flex items-center gap-2 flex-1">
-                          <Switch 
-                            checked={schedule?.active || false}
-                            onCheckedChange={(checked) => 
-                              handleScheduleChange(day, 'active', checked)
-                            }
-                          />
-                          
-                          <div className="grid grid-cols-2 gap-2 flex-1">
-                            <Input 
-                              type="time" 
-                              value={schedule?.start || '09:00'} 
-                              onChange={(e) => 
-                                handleScheduleChange(day, 'start', e.target.value)
-                              }
-                              disabled={!schedule?.active}
-                              className="text-sm"
-                            />
-                            <Input 
-                              type="time" 
-                              value={schedule?.end || '18:00'} 
-                              onChange={(e) => 
-                                handleScheduleChange(day, 'end', e.target.value)
-                              }
-                              disabled={!schedule?.active}
-                              className="text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-              Cancelar
-            </Button>
-            <Button variant="salon" onClick={handleAddEmployee}>
-              Adicionar funcionário
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Employee Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar funcionário</DialogTitle>
-            <DialogDescription>
-              Edite as informações do funcionário abaixo.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-            {/* Left column - Basic info */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nome completo*</Label>
-                <Input 
-                  id="edit-name" 
-                  value={formData.name || ''} 
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? 'border-destructive' : ''}
-                />
-                {formErrors.name && (
-                  <p className="text-xs text-destructive">{formErrors.name}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-role">Função*</Label>
-                <Input 
-                  id="edit-role" 
-                  value={formData.role || ''} 
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? 'border-destructive' : ''}
-                />
-                {formErrors.role && (
-                  <p className="text-xs text-destructive">{formErrors.role}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-email">Email*</Label>
-                <Input 
-                  id="edit-email" 
-                  type="email" 
-                  value={formData.email || ''} 
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? 'border-destructive' : ''}
-                />
-                {formErrors.email && (
-                  <p className="text-xs text-destructive">{formErrors.email}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone">Telefone*</Label>
-                <Input 
-                  id="edit-phone" 
-                  value={formData.phone || ''} 
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? 'border-destructive' : ''}
-                />
-                {formErrors.phone && (
-                  <p className="text-xs text-destructive">{formErrors.phone}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-commission">Comissão (%)</Label>
-                <Input 
-                  id="edit-commission" 
-                  type="number" 
-                  min="0" 
-                  max="100" 
-                  value={formData.commission || 20} 
-                  onChange={(e) => handleInputChange('commission', Number(e.target.value))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <div className="flex items-center space-x-2">
-                  <RadioGroup 
-                    value={formData.status || "active"} 
-                    onValueChange={(value) => handleInputChange('status', value as "active" | "inactive")}
-                    className="flex space-x-4"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="active" id="edit-status-active" />
-                      <Label htmlFor="edit-status-active">Ativo</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="inactive" id="edit-status-inactive" />
-                      <Label htmlFor="edit-status-inactive">Inativo</Label>
-                    </div>
-                  </RadioGroup>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-bio">Biografia</Label>
-                <Textarea 
-                  id="edit-bio" 
-                  value={formData.bio || ''} 
-                  onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className="min-h-[100px]"
-                />
-              </div>
-            </div>
-            
-            {/* Right column - Specialties and Schedule */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Especialidades</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {specialtiesList.map(specialty => (
-                    <div key={specialty} className="flex items-center space-x-2">
-                      <input 
-                        type="checkbox" 
-                        id={`edit-specialty-${specialty}`} 
-                        className="rounded text-salon-500 focus:ring-salon-500"
-                        checked={(formData.specialties || []).includes(specialty)}
-                        onChange={() => handleSpecialtyToggle(specialty)}
-                      />
-                      <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm font-normal">
-                        {specialty}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Horário de trabalho</Label>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Defina os dias e horários que o funcionário estará disponível.
-                </p>
-                
-                <div className="space-y-3">
-                  {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day, index) => {
-                    const dayNames = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-                    const schedule = formData.schedule && formData.schedule[day as keyof typeof formData.schedule];
-                    
-                    return (
-                      <div key={day} className="flex items-center gap-3">
-                        <div className="w-24 text-sm">{dayNames[index]}</div>
-                        <div className="flex items-center gap-2 flex-1">
-                          <Switch 
-                            checked={schedule?.active || false}
-                            onCheckedChange={(checked) => 
-                              handleScheduleChange(day, 'active', checked)
-                            }
-                          />
-                          
-                          <div className="grid grid-cols-2 gap-2 flex-1">
-                            <Input 
-                              type="time" 
-                              value={schedule?.start || '09:00'} 
-                              onChange={(e) => 
-                                handleScheduleChange(day, 'start', e.target.value)
-                              }
-                              disabled={!schedule?.active}
-                              className="text-sm"
-                            />
-                            <Input 
-                              type="time" 
-                              value={schedule?.end || '18:00'} 
-                              onChange={(e) => 
-                                handleScheduleChange(day, 'end', e.target.value)
-                              }
-                              disabled={!schedule?.active}
-                              className="text-sm"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
-            </Button>
-            <Button variant="salon" onClick={handleEditEmployee}>
-              Salvar alterações
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Employee Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Remover funcionário</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja remover {currentEmployee?.name} da sua equipe? Esta ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex items-center p-4 mt-2 bg-muted/50 rounded-lg">
-            <Avatar className="h-10 w-10 mr-3">
-              <AvatarImage src={currentEmployee?.avatar} alt={currentEmployee?.name} />
-              <AvatarFallback>
-                {currentEmployee?.name.split(' ').map(n => n[0]).join('')}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium">{currentEmployee?.name}</p>
-              <p className="text-xs text-muted-foreground">{currentEmployee?.role}</p>
-            </div>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0 mt-4">
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              Cancelar
-            </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDeleteEmployee}
-              className="gap-2"
-            >
-              <Trash2 className="h-4 w-4" />
-              Confirmar remoção
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-};
-
-export default EmployeesPage;
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Funcionário</th>
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Contato</th>
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Especialidades</th>
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Comissão</th>
+                      <th className="py-3 px-4 text-left font-medium text-salon
