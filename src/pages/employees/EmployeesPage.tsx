@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -742,4 +743,457 @@ const EmployeesPage: React.FC = () => {
                       <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Contato</th>
                       <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Especialidades</th>
                       <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Comissão</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Status</th>
+                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredEmployees.map((employee, index) => (
+                      <motion.tr 
+                        key={employee.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="border-b border-salon-100/30 dark:border-salon-800/30 hover:bg-salon-50/50 dark:hover:bg-salon-900/20"
+                      >
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10 border-2 border-salon-100 dark:border-salon-800">
+                              <AvatarImage src={employee.avatar} alt={employee.name} />
+                              <AvatarFallback className="text-sm bg-gradient-to-br from-salon-400 to-salon-600 text-white">
+                                {employee.name.split(' ').map(n => n[0]).join('')}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <p className="font-medium">{employee.name}</p>
+                              <p className="text-xs text-muted-foreground">{employee.role}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center text-xs">
+                              <Mail className="h-3 w-3 mr-1 text-salon-500 dark:text-salon-400" />
+                              <span>{employee.email}</span>
+                            </div>
+                            <div className="flex items-center text-xs">
+                              <Phone className="h-3 w-3 mr-1 text-salon-500 dark:text-salon-400" />
+                              <span>{employee.phone}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-wrap gap-1">
+                            {employee.specialties.map(specialty => (
+                              <Badge key={specialty} variant="outline" className="text-[10px] px-1 py-0 bg-salon-50 dark:bg-salon-900/50 border-salon-200 dark:border-salon-700">
+                                {specialty}
+                              </Badge>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <DollarSign className="h-3 w-3 text-salon-500 dark:text-salon-400" />
+                            <span>{employee.commission}%</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <Badge 
+                            variant={employee.status === "active" ? "success" : "secondary"}
+                            className="text-[10px]"
+                          >
+                            {employee.status === "active" ? "Ativo" : "Inativo"}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 w-8 p-0 text-salon-600 dark:text-salon-400 hover:text-salon-700 hover:bg-salon-100 dark:hover:bg-salon-900/30"
+                              onClick={() => openEditDialog(employee)}
+                            >
+                              <Edit className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              onClick={() => openDeleteDialog(employee)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
+      
+      {/* Add Employee Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Funcionário</DialogTitle>
+            <DialogDescription>
+              Insira os dados do novo profissional da sua equipe.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className={formErrors.name ? "text-destructive" : ""}>
+                  Nome Completo *
+                </Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className={formErrors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.name && (
+                  <p className="text-xs text-destructive">{formErrors.name}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="role" className={formErrors.role ? "text-destructive" : ""}>
+                  Função *
+                </Label>
+                <Input
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  className={formErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.role && (
+                  <p className="text-xs text-destructive">{formErrors.role}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className={formErrors.email ? "text-destructive" : ""}>
+                  Email *
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.email && (
+                  <p className="text-xs text-destructive">{formErrors.email}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className={formErrors.phone ? "text-destructive" : ""}>
+                  Telefone *
+                </Label>
+                <Input
+                  id="phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className={formErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.phone && (
+                  <p className="text-xs text-destructive">{formErrors.phone}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value) => handleInputChange('status', value)}
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="commission">Comissão (%)</Label>
+                <Input
+                  id="commission"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.commission}
+                  onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Especialidades</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-background/50">
+                {specialtiesList.map(specialty => (
+                  <div key={specialty} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`specialty-${specialty}`}
+                      checked={(formData.specialties || []).includes(specialty)}
+                      onCheckedChange={() => handleSpecialtyToggle(specialty)}
+                    />
+                    <Label htmlFor={`specialty-${specialty}`} className="text-sm">
+                      {specialty}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="bio">Biografia</Label>
+              <Textarea
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Descreva a experiência e especialidade deste profissional..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddDialog(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="salon" 
+              onClick={handleAddEmployee}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                  Salvando...
+                </>
+              ) : (
+                'Adicionar Funcionário'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Employee Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Editar Funcionário</DialogTitle>
+            <DialogDescription>
+              Modifique os dados do profissional.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-name" className={formErrors.name ? "text-destructive" : ""}>
+                  Nome Completo *
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className={formErrors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.name && (
+                  <p className="text-xs text-destructive">{formErrors.name}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-role" className={formErrors.role ? "text-destructive" : ""}>
+                  Função *
+                </Label>
+                <Input
+                  id="edit-role"
+                  value={formData.role}
+                  onChange={(e) => handleInputChange('role', e.target.value)}
+                  className={formErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.role && (
+                  <p className="text-xs text-destructive">{formErrors.role}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-email" className={formErrors.email ? "text-destructive" : ""}>
+                  Email *
+                </Label>
+                <Input
+                  id="edit-email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.email && (
+                  <p className="text-xs text-destructive">{formErrors.email}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-phone" className={formErrors.phone ? "text-destructive" : ""}>
+                  Telefone *
+                </Label>
+                <Input
+                  id="edit-phone"
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className={formErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}
+                />
+                {formErrors.phone && (
+                  <p className="text-xs text-destructive">{formErrors.phone}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-status">Status</Label>
+                <Select 
+                  value={formData.status} 
+                  onValueChange={(value) => handleInputChange('status', value)}
+                >
+                  <SelectTrigger id="edit-status">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Ativo</SelectItem>
+                    <SelectItem value="inactive">Inativo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-commission">Comissão (%)</Label>
+                <Input
+                  id="edit-commission"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.commission}
+                  onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Especialidades</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-background/50">
+                {specialtiesList.map(specialty => (
+                  <div key={specialty} className="flex items-center space-x-2">
+                    <Checkbox 
+                      id={`edit-specialty-${specialty}`}
+                      checked={(formData.specialties || []).includes(specialty)}
+                      onCheckedChange={() => handleSpecialtyToggle(specialty)}
+                    />
+                    <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm">
+                      {specialty}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-bio">Biografia</Label>
+              <Textarea
+                id="edit-bio"
+                value={formData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Descreva a experiência e especialidade deste profissional..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowEditDialog(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="salon" 
+              onClick={handleEditEmployee}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                  Salvando...
+                </>
+              ) : (
+                'Salvar Alterações'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Confirmar exclusão</DialogTitle>
+            <DialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente o funcionário{' '}
+              <span className="font-medium text-salon-600 dark:text-salon-400">
+                {currentEmployee?.name}
+              </span>.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              disabled={isSubmitting}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleDeleteEmployee}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                  Excluindo...
+                </>
+              ) : (
+                'Sim, excluir'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default EmployeesPage;
