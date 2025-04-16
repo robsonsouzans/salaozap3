@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -49,8 +48,8 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { getCurrentUser } from '@/lib/auth';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// Define proper Employee type
 interface Employee {
   id: string;
   name: string;
@@ -58,7 +57,7 @@ interface Employee {
   role: string;
   phone: string;
   email: string;
-  status: "active" | "inactive"; // Fixed type here
+  status: "active" | "inactive";
   specialties: string[];
   hireDate: string;
   commission: number;
@@ -96,7 +95,6 @@ const EmployeesPage: React.FC = () => {
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   
-  // Fixed sample data with proper status values
   const [employees, setEmployees] = useState<Employee[]>([
     {
       id: '1',
@@ -105,7 +103,7 @@ const EmployeesPage: React.FC = () => {
       role: 'Cabeleireira',
       phone: '(11) 94321-8765',
       email: 'ana.silva@salao.com',
-      status: "active", // Fixed value
+      status: "active",
       specialties: ['Corte Feminino', 'Coloração', 'Penteado'],
       hireDate: '2021-05-12',
       commission: 30,
@@ -127,7 +125,7 @@ const EmployeesPage: React.FC = () => {
       role: 'Barbeiro',
       phone: '(11) 98765-4321',
       email: 'pedro.santos@salao.com',
-      status: "active", // Fixed value
+      status: "active",
       specialties: ['Corte Masculino', 'Barba'],
       hireDate: '2022-01-15',
       commission: 25,
@@ -149,7 +147,7 @@ const EmployeesPage: React.FC = () => {
       role: 'Manicure',
       phone: '(11) 91234-5678',
       email: 'carla.oliveira@salao.com',
-      status: "inactive", // Fixed value
+      status: "inactive",
       specialties: ['Manicure', 'Pedicure'],
       hireDate: '2020-11-03',
       commission: 20,
@@ -166,7 +164,6 @@ const EmployeesPage: React.FC = () => {
     }
   ]);
   
-  // New form state for better user experience
   const [formData, setFormData] = useState<Partial<Employee>>({
     name: '',
     role: '',
@@ -187,7 +184,6 @@ const EmployeesPage: React.FC = () => {
     },
   });
   
-  // Add form validation step
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -228,15 +224,12 @@ const EmployeesPage: React.FC = () => {
   }, [isSalon, navigate]);
   
   const filteredEmployees = employees.filter(employee => {
-    // Filter by search term
     const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           employee.role.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Filter by status
     const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
     
-    // Filter by specialization
     const matchesSpecialization = specializationFilter === 'all' || 
                                   employee.specialties.includes(specializationFilter);
     
@@ -251,7 +244,6 @@ const EmployeesPage: React.FC = () => {
       return;
     }
     
-    // Simulate loading
     setTimeout(() => {
       const newEmployee: Employee = {
         id: Date.now().toString(),
@@ -297,7 +289,6 @@ const EmployeesPage: React.FC = () => {
       return;
     }
     
-    // Simulate loading
     setTimeout(() => {
       const updatedEmployees = employees.map(emp => 
         emp.id === currentEmployee.id 
@@ -337,7 +328,6 @@ const EmployeesPage: React.FC = () => {
       return;
     }
     
-    // Simulate loading
     setTimeout(() => {
       const updatedEmployees = employees.filter(emp => emp.id !== currentEmployee.id);
       setEmployees(updatedEmployees);
@@ -427,7 +417,6 @@ const EmployeesPage: React.FC = () => {
       [field]: value
     }));
     
-    // Clear error when field is filled
     if (formErrors[field]) {
       setFormErrors(prev => ({
         ...prev,
@@ -464,7 +453,6 @@ const EmployeesPage: React.FC = () => {
         <p className="text-muted-foreground">Gerencie sua equipe, adicione novos profissionais e acompanhe seu desempenho.</p>
       </div>
       
-      {/* Filters and Actions */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -562,7 +550,6 @@ const EmployeesPage: React.FC = () => {
         </div>
       </div>
       
-      {/* Employees List */}
       {filteredEmployees.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -835,7 +822,6 @@ const EmployeesPage: React.FC = () => {
         </AnimatePresence>
       )}
       
-      {/* Add Employee Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -995,7 +981,6 @@ const EmployeesPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Edit Employee Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -1155,7 +1140,6 @@ const EmployeesPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
