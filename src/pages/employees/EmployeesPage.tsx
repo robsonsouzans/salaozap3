@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, UserPlus, Grid, List, 
   Edit, Trash2, Mail, Phone,
-  Calendar, DollarSign, Star, Clock, ChevronUp, ChevronDown
+  Calendar, DollarSign, Star, Clock, ChevronUp, ChevronDown,
+  Upload, ImageIcon, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format } from 'date-fns';
@@ -95,6 +96,10 @@ const EmployeesPage: React.FC = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
+  
+  // New state for image upload handling
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   
   const [employees, setEmployees] = useState<Employee[]>([
     {
@@ -240,6 +245,26 @@ const EmployeesPage: React.FC = () => {
     }
   }, [isSalon, navigate]);
   
+  // Image handling functions
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Preview the selected image
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    setImageFile(file);
+  };
+  
+  const clearImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setImagePreview(null);
+    setImageFile(null);
+  };
+  
   const handleAddEmployee = () => {
     setIsSubmitting(true);
     
@@ -249,10 +274,19 @@ const EmployeesPage: React.FC = () => {
     }
     
     setTimeout(() => {
+      let avatarUrl = `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`;
+      
+      // If we have an image preview, use that instead of the random avatar
+      if (imagePreview) {
+        // In a real app, we would upload the image to a server here
+        // For this demo, we'll just use the preview URL directly
+        avatarUrl = imagePreview;
+      }
+      
       const newEmployee: Employee = {
         id: Date.now().toString(),
         name: formData.name || '',
-        avatar: `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`,
+        avatar: avatarUrl,
         role: formData.role || '',
         phone: formData.phone || '',
         email: formData.email || '',
@@ -306,7 +340,9 @@ const EmployeesPage: React.FC = () => {
               specialties: formData.specialties || emp.specialties,
               commission: formData.commission || emp.commission,
               schedule: formData.schedule || emp.schedule,
-              bio: formData.bio || emp.bio
+              bio: formData.bio || emp.bio,
+              // Update avatar if we have a new image
+              avatar: imagePreview || emp.avatar
             }
           : emp
       );
@@ -359,6 +395,8 @@ const EmployeesPage: React.FC = () => {
       schedule: employee.schedule,
       bio: employee.bio
     });
+    // Set image preview from employee avatar
+    setImagePreview(employee.avatar);
     setShowEditDialog(true);
   };
   
@@ -389,6 +427,8 @@ const EmployeesPage: React.FC = () => {
     });
     setFormErrors({});
     setCurrentEmployee(null);
+    setImagePreview(null);
+    setImageFile(null);
   };
   
   const formatDate = (dateString: string) => {
@@ -449,6 +489,392 @@ const EmployeesPage: React.FC = () => {
       setExpandedEmployeeId(employeeId);
     }
   };
+  
+  // Add our image upload component to the dialogs
+  const imageUploadField = (
+    <div className="space-y-2">
+      <Label className="text-gray-700 dark:text-gray-300">Foto do Funcionário</Label>
+      <div 
+        className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-md p-4 h-[180px] bg-gray-50 dark:bg-gray-800/50 transition-all hover:border-gray-400 dark:hover:border-gray-600"
+        onClick={() => document.getElementById(showEditDialog ? 'edit-image-upload' : 'add-image-upload')?.click()}
+      >
+        {imagePreview ? (
+          <div className="relative w-full h-full">
+            <img 
+              src={imagePreview} 
+              alt="Preview" 
+              className="w-full h-full object-cover rounded-md"
+            />
+            <Button
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 h-6 w-6 rounded-full"
+              onClick={clearImage}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="flex flex-col items-center justify-center cursor-pointer space-y-2">
+              <div className="p-3 bg-white dark:bg-gray-700 rounded-full">
+                <ImageIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Clique para adicionar uma foto</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">PNG, JPG, GIF até 10MB</p>
+              </div>
+            </div>
+          </>
+        )}
+        <input 
+          type="file" 
+          id={showEditDialog ? 'edit-image-upload' : 'add-image-upload'} 
+          accept="image/*" 
+          className="hidden" 
+          onChange={handleImageChange}
+        />
+      </div>
+    </div>
+  );
+  
+  // Update Add Dialog to include image upload
+  const renderAddDialog = () => (
+    <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+      <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+        <DialogHeader>
+          <DialogTitle className="text-black dark:text-white">Adicionar Funcionário</DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
+            Insira os dados do novo profissional da sua equipe.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          {/* Image upload field */}
+          {imageUploadField}
+          
+          <Separator className="my-1" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Nome Completo *
+              </Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.name && (
+                <p className="text-xs text-red-500">{formErrors.name}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Função *
+              </Label>
+              <Input
+                id="role"
+                value={formData.role}
+                onChange={(e) => handleInputChange('role', e.target.value)}
+                className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.role && (
+                <p className="text-xs text-red-500">{formErrors.role}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Email *
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.email && (
+                <p className="text-xs text-red-500">{formErrors.email}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Telefone *
+              </Label>
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.phone && (
+                <p className="text-xs text-red-500">{formErrors.phone}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value) => handleInputChange('status', value)}
+              >
+                <SelectTrigger id="status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
+              <Input
+                id="commission"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.commission}
+                onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+              {specialtiesList.map(specialty => (
+                <div key={specialty} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`specialty-${specialty}`}
+                    checked={(formData.specialties || []).includes(specialty)}
+                    onCheckedChange={() => handleSpecialtyToggle(specialty)}
+                  />
+                  <Label htmlFor={`specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
+                    {specialty}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
+            <Textarea
+              id="bio"
+              value={formData.bio}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
+              placeholder="Descreva a experiência e especialidade deste profissional..."
+              className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowAddDialog(false)}
+            disabled={isSubmitting}
+            className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleAddEmployee}
+            disabled={isSubmitting}
+            className="bg-black hover:bg-gray-800 text-white"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                Salvando...
+              </>
+            ) : (
+              'Adicionar Funcionário'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+  
+  // Update Edit Dialog to include image upload
+  const renderEditDialog = () => (
+    <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+      <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+        <DialogHeader>
+          <DialogTitle className="text-black dark:text-white">Editar Funcionário</DialogTitle>
+          <DialogDescription className="text-gray-500 dark:text-gray-400">
+            Modifique os dados do profissional.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
+          {/* Image upload field */}
+          {imageUploadField}
+          
+          <Separator className="my-1" />
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Nome Completo *
+              </Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.name && (
+                <p className="text-xs text-red-500">{formErrors.name}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Função *
+              </Label>
+              <Input
+                id="edit-role"
+                value={formData.role}
+                onChange={(e) => handleInputChange('role', e.target.value)}
+                className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.role && (
+                <p className="text-xs text-red-500">{formErrors.role}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Email *
+              </Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.email && (
+                <p className="text-xs text-red-500">{formErrors.email}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
+                Telefone *
+              </Label>
+              <Input
+                id="edit-phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
+              />
+              {formErrors.phone && (
+                <p className="text-xs text-red-500">{formErrors.phone}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-status" className="text-gray-700 dark:text-gray-300">Status</Label>
+              <Select 
+                value={formData.status} 
+                onValueChange={(value) => handleInputChange('status', value)}
+              >
+                <SelectTrigger id="edit-status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                  <SelectItem value="active">Ativo</SelectItem>
+                  <SelectItem value="inactive">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
+              <Input
+                id="edit-commission"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.commission}
+                onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
+              {specialtiesList.map(specialty => (
+                <div key={specialty} className="flex items-center space-x-2">
+                  <Checkbox 
+                    id={`edit-specialty-${specialty}`}
+                    checked={(formData.specialties || []).includes(specialty)}
+                    onCheckedChange={() => handleSpecialtyToggle(specialty)}
+                  />
+                  <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
+                    {specialty}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="edit-bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
+            <Textarea
+              id="edit-bio"
+              value={formData.bio}
+              onChange={(e) => handleInputChange('bio', e.target.value)}
+              placeholder="Descreva a experiência e especialidade deste profissional..."
+              className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowEditDialog(false)}
+            disabled={isSubmitting}
+            className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            onClick={handleEditEmployee}
+            disabled={isSubmitting}
+            className="bg-black hover:bg-gray-800 text-white"
+          >
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar Alterações'
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
   
   return (
     <div className="container mx-auto p-4 py-6 max-w-7xl">
@@ -827,328 +1253,8 @@ const EmployeesPage: React.FC = () => {
       )}
       
       {/* Dialog Components */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-black dark:text-white">Adicionar Funcionário</DialogTitle>
-            <DialogDescription className="text-gray-500 dark:text-gray-400">
-              Insira os dados do novo profissional da sua equipe.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Nome Completo *
-                </Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.name && (
-                  <p className="text-xs text-red-500">{formErrors.name}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Função *
-                </Label>
-                <Input
-                  id="role"
-                  value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.role && (
-                  <p className="text-xs text-red-500">{formErrors.role}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Email *
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.email && (
-                  <p className="text-xs text-red-500">{formErrors.email}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Telefone *
-                </Label>
-                <Input
-                  id="phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.phone && (
-                  <p className="text-xs text-red-500">{formErrors.phone}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger id="status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
-                <Input
-                  id="commission"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.commission}
-                  onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
-                  className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-                {specialtiesList.map(specialty => (
-                  <div key={specialty} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`specialty-${specialty}`}
-                      checked={(formData.specialties || []).includes(specialty)}
-                      onCheckedChange={() => handleSpecialtyToggle(specialty)}
-                    />
-                    <Label htmlFor={`specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
-                      {specialty}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
-              <Textarea
-                id="bio"
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Descreva a experiência e especialidade deste profissional..."
-                className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowAddDialog(false)}
-              disabled={isSubmitting}
-              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleAddEmployee}
-              disabled={isSubmitting}
-              className="bg-black hover:bg-gray-800 text-white"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                  Salvando...
-                </>
-              ) : (
-                'Adicionar Funcionário'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Dialog */}
-      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-          <DialogHeader>
-            <DialogTitle className="text-black dark:text-white">Editar Funcionário</DialogTitle>
-            <DialogDescription className="text-gray-500 dark:text-gray-400">
-              Modifique os dados do profissional.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Nome Completo *
-                </Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.name && (
-                  <p className="text-xs text-red-500">{formErrors.name}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Função *
-                </Label>
-                <Input
-                  id="edit-role"
-                  value={formData.role}
-                  onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.role && (
-                  <p className="text-xs text-red-500">{formErrors.role}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Email *
-                </Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.email && (
-                  <p className="text-xs text-red-500">{formErrors.email}</p>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
-                  Telefone *
-                </Label>
-                <Input
-                  id="edit-phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
-                />
-                {formErrors.phone && (
-                  <p className="text-xs text-red-500">{formErrors.phone}</p>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit-status" className="text-gray-700 dark:text-gray-300">Status</Label>
-                <Select 
-                  value={formData.status} 
-                  onValueChange={(value) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger id="edit-status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
-                    <SelectValue placeholder="Selecione o status" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-                    <SelectItem value="active">Ativo</SelectItem>
-                    <SelectItem value="inactive">Inativo</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="edit-commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
-                <Input
-                  id="edit-commission"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={formData.commission}
-                  onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
-                  className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
-                />
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
-                {specialtiesList.map(specialty => (
-                  <div key={specialty} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`edit-specialty-${specialty}`}
-                      checked={(formData.specialties || []).includes(specialty)}
-                      onCheckedChange={() => handleSpecialtyToggle(specialty)}
-                    />
-                    <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
-                      {specialty}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="edit-bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
-              <Textarea
-                id="edit-bio"
-                value={formData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                placeholder="Descreva a experiência e especialidade deste profissional..."
-                className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowEditDialog(false)}
-              disabled={isSubmitting}
-              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleEditEmployee}
-              disabled={isSubmitting}
-              className="bg-black hover:bg-gray-800 text-white"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="animate-spin mr-2 h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                  Salvando...
-                </>
-              ) : (
-                'Salvar Alterações'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {renderAddDialog()}
+      {renderEditDialog()}
       
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
