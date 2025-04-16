@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, UserPlus, Grid, List, 
@@ -97,7 +97,6 @@ const EmployeesPage: React.FC = () => {
   const [currentEmployee, setCurrentEmployee] = useState<Employee | null>(null);
   const [expandedEmployeeId, setExpandedEmployeeId] = useState<string | null>(null);
   
-  // New state for image upload handling
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   
@@ -218,8 +217,7 @@ const EmployeesPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
   
-  // Fix: Use memo to prevent infinite loops with the filteredEmployees calculation
-  const filteredEmployees = React.useMemo(() => {
+  const filteredEmployees = useMemo(() => {
     return employees.filter(employee => {
       const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -245,12 +243,10 @@ const EmployeesPage: React.FC = () => {
     }
   }, [isSalon, navigate]);
   
-  // Image handling functions
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Preview the selected image
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result as string);
@@ -261,6 +257,7 @@ const EmployeesPage: React.FC = () => {
   
   const clearImage = (e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     setImagePreview(null);
     setImageFile(null);
   };
@@ -276,10 +273,7 @@ const EmployeesPage: React.FC = () => {
     setTimeout(() => {
       let avatarUrl = `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70)}`;
       
-      // If we have an image preview, use that instead of the random avatar
       if (imagePreview) {
-        // In a real app, we would upload the image to a server here
-        // For this demo, we'll just use the preview URL directly
         avatarUrl = imagePreview;
       }
       
@@ -341,7 +335,6 @@ const EmployeesPage: React.FC = () => {
               commission: formData.commission || emp.commission,
               schedule: formData.schedule || emp.schedule,
               bio: formData.bio || emp.bio,
-              // Update avatar if we have a new image
               avatar: imagePreview || emp.avatar
             }
           : emp
@@ -395,8 +388,8 @@ const EmployeesPage: React.FC = () => {
       schedule: employee.schedule,
       bio: employee.bio
     });
-    // Set image preview from employee avatar
     setImagePreview(employee.avatar);
+    setImageFile(null);
     setShowEditDialog(true);
   };
   
@@ -490,12 +483,11 @@ const EmployeesPage: React.FC = () => {
     }
   };
   
-  // Add our image upload component to the dialogs
   const imageUploadField = (
-    <div className="space-y-2">
-      <Label className="text-gray-700 dark:text-gray-300">Foto do Funcionário</Label>
+    <div className="space-y-2 mb-4">
+      <Label className="text-gray-700 dark:text-gray-300 font-medium">Foto do Funcionário</Label>
       <div 
-        className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-md p-4 h-[180px] bg-gray-50 dark:bg-gray-800/50 transition-all hover:border-gray-400 dark:hover:border-gray-600"
+        className="relative flex flex-col items-center justify-center border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-4 h-[180px] bg-gray-50 dark:bg-gray-800/50 transition-all hover:border-gray-400 dark:hover:border-gray-600 cursor-pointer"
         onClick={() => document.getElementById(showEditDialog ? 'edit-image-upload' : 'add-image-upload')?.click()}
       >
         {imagePreview ? (
@@ -506,6 +498,7 @@ const EmployeesPage: React.FC = () => {
               className="w-full h-full object-cover rounded-md"
             />
             <Button
+              type="button"
               variant="destructive"
               size="icon"
               className="absolute top-2 right-2 h-6 w-6 rounded-full"
@@ -516,7 +509,7 @@ const EmployeesPage: React.FC = () => {
           </div>
         ) : (
           <>
-            <div className="flex flex-col items-center justify-center cursor-pointer space-y-2">
+            <div className="flex flex-col items-center justify-center space-y-2">
               <div className="p-3 bg-white dark:bg-gray-700 rounded-full">
                 <ImageIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
               </div>
@@ -538,7 +531,6 @@ const EmployeesPage: React.FC = () => {
     </div>
   );
   
-  // Update Add Dialog to include image upload
   const renderAddDialog = () => (
     <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
       <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
@@ -549,7 +541,6 @@ const EmployeesPage: React.FC = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-          {/* Image upload field */}
           {imageUploadField}
           
           <Separator className="my-1" />
@@ -707,7 +698,6 @@ const EmployeesPage: React.FC = () => {
     </Dialog>
   );
   
-  // Update Edit Dialog to include image upload
   const renderEditDialog = () => (
     <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
       <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
@@ -718,7 +708,6 @@ const EmployeesPage: React.FC = () => {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
-          {/* Image upload field */}
           {imageUploadField}
           
           <Separator className="my-1" />
@@ -1252,11 +1241,9 @@ const EmployeesPage: React.FC = () => {
         </AnimatePresence>
       )}
       
-      {/* Dialog Components */}
       {renderAddDialog()}
       {renderEditDialog()}
       
-      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-[400px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <DialogHeader>
