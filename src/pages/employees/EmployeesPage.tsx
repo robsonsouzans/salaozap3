@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, UserPlus, Grid, List, 
@@ -49,6 +49,7 @@ import { toast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { getCurrentUser } from '@/lib/auth';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
 
 interface Employee {
   id: string;
@@ -212,6 +213,22 @@ const EmployeesPage: React.FC = () => {
     return Object.keys(errors).length === 0;
   };
   
+  // Fix: Use memo to prevent infinite loops with the filteredEmployees calculation
+  const filteredEmployees = React.useMemo(() => {
+    return employees.filter(employee => {
+      const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          employee.role.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
+      
+      const matchesSpecialization = specializationFilter === 'all' || 
+                                  employee.specialties.includes(specializationFilter);
+      
+      return matchesSearch && matchesStatus && matchesSpecialization;
+    });
+  }, [employees, searchTerm, statusFilter, specializationFilter]);
+  
   useEffect(() => {
     if (!isSalon) {
       navigate('/dashboard');
@@ -222,19 +239,6 @@ const EmployeesPage: React.FC = () => {
       });
     }
   }, [isSalon, navigate]);
-  
-  const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          employee.role.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
-    
-    const matchesSpecialization = specializationFilter === 'all' || 
-                                  employee.specialties.includes(specializationFilter);
-    
-    return matchesSearch && matchesStatus && matchesSpecialization;
-  });
   
   const handleAddEmployee = () => {
     setIsSubmitting(true);
@@ -449,16 +453,16 @@ const EmployeesPage: React.FC = () => {
   return (
     <div className="container mx-auto p-4 py-6 max-w-7xl">
       <div className="flex flex-col mb-6">
-        <h1 className="text-3xl font-bold mb-2 text-gradient">Funcionários</h1>
-        <p className="text-muted-foreground">Gerencie sua equipe, adicione novos profissionais e acompanhe seu desempenho.</p>
+        <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">Funcionários</h1>
+        <p className="text-gray-600 dark:text-gray-300">Gerencie sua equipe, adicione novos profissionais e acompanhe seu desempenho.</p>
       </div>
       
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Buscar funcionários por nome, email ou função..."
-            className="pl-10 focus-animation"
+            className="pl-10 border-gray-200 focus:border-gray-400 focus-visible:ring-gray-400/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -467,14 +471,14 @@ const EmployeesPage: React.FC = () => {
         <div className="flex gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" animation="shine" className="flex items-center gap-2 bg-background/80 backdrop-blur-sm shadow-sm">
+              <Button variant="outline" className="flex items-center gap-2 bg-white dark:bg-gray-900 shadow-sm border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
                 <Filter className="h-4 w-4" />
                 Filtros
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
+            <DropdownMenuContent className="w-56 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
               <div className="p-2">
-                <p className="text-sm font-medium mb-2">Status</p>
+                <p className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Status</p>
                 <RadioGroup 
                   value={statusFilter} 
                   onValueChange={(value) => setStatusFilter(value as any)}
@@ -482,29 +486,29 @@ const EmployeesPage: React.FC = () => {
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="all" id="all" />
-                    <Label htmlFor="all">Todos</Label>
+                    <Label htmlFor="all" className="text-gray-600 dark:text-gray-400">Todos</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="active" id="active" />
-                    <Label htmlFor="active">Ativos</Label>
+                    <Label htmlFor="active" className="text-gray-600 dark:text-gray-400">Ativos</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="inactive" id="inactive" />
-                    <Label htmlFor="inactive">Inativos</Label>
+                    <Label htmlFor="inactive" className="text-gray-600 dark:text-gray-400">Inativos</Label>
                   </div>
                 </RadioGroup>
                 
-                <Separator className="my-3" />
+                <Separator className="my-3 bg-gray-200 dark:bg-gray-700" />
                 
-                <p className="text-sm font-medium mb-2">Especialidade</p>
+                <p className="text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">Especialidade</p>
                 <Select 
                   value={specializationFilter} 
                   onValueChange={setSpecializationFilter}
                 >
-                  <SelectTrigger className="focus-animation">
+                  <SelectTrigger className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
                     <SelectValue placeholder="Todas especialidades" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                     <SelectItem value="all">Todas especialidades</SelectItem>
                     {specialtiesList.map(specialty => (
                       <SelectItem key={specialty} value={specialty}>
@@ -517,17 +521,17 @@ const EmployeesPage: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
           
-          <div className="flex border rounded-md overflow-hidden shadow-sm bg-background/80 backdrop-blur-sm">
+          <div className="flex border rounded-md overflow-hidden shadow-sm border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <Button 
               variant="ghost" 
-              className={`rounded-none px-3 ${view === 'grid' ? 'bg-muted' : ''}`}
+              className={`rounded-none px-3 ${view === 'grid' ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white' : 'text-gray-500'}`}
               onClick={() => setView('grid')}
             >
               <Grid className="h-4 w-4" />
             </Button>
             <Button 
               variant="ghost" 
-              className={`rounded-none px-3 ${view === 'table' ? 'bg-muted' : ''}`}
+              className={`rounded-none px-3 ${view === 'table' ? 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white' : 'text-gray-500'}`}
               onClick={() => setView('table')}
             >
               <List className="h-4 w-4" />
@@ -535,9 +539,7 @@ const EmployeesPage: React.FC = () => {
           </div>
           
           <Button 
-            variant="salon" 
-            className="flex items-center gap-2" 
-            animation="shine"
+            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white shadow-sm"
             onClick={() => {
               resetForm();
               setShowAddDialog(true);
@@ -557,17 +559,15 @@ const EmployeesPage: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="flex flex-col items-center justify-center py-12 text-center"
         >
-          <div className="bg-gradient-to-br from-salon-100 to-salon-200 dark:from-salon-800 dark:to-salon-700 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-xl">
-            <UserPlus className="h-8 w-8 text-salon-600 dark:text-salon-300" />
+          <div className="bg-gray-100 dark:bg-gray-800 w-20 h-20 rounded-full flex items-center justify-center mb-4 shadow-md">
+            <UserPlus className="h-8 w-8 text-gray-600 dark:text-gray-300" />
           </div>
-          <h3 className="text-xl font-medium mb-2">Nenhum funcionário encontrado</h3>
-          <p className="text-muted-foreground max-w-md">
+          <h3 className="text-xl font-medium mb-2 text-black dark:text-white">Nenhum funcionário encontrado</h3>
+          <p className="text-gray-500 dark:text-gray-400 max-w-md">
             Não encontramos nenhum funcionário com os filtros aplicados. Tente outro termo de busca ou adicione um novo funcionário.
           </p>
           <Button 
-            variant="salon"
-            animation="shine"
-            className="mt-6 shadow-md hover:shadow-lg transition-all" 
+            className="mt-6 shadow-sm bg-black hover:bg-gray-800 text-white"
             onClick={() => {
               resetForm();
               setShowAddDialog(true);
@@ -594,31 +594,31 @@ const EmployeesPage: React.FC = () => {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
-                  className="hover-lift"
+                  className="transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg"
                 >
-                  <Card className="overflow-hidden h-full border-0 glass-card hover:shadow-xl dark:hover:shadow-salon-500/5 transition-all duration-500">
+                  <Card className="overflow-hidden h-full border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 bg-white dark:bg-gray-900">
                     <CardContent className="p-0">
                       <div className="relative pb-3">
-                        <div className="h-24 bg-gradient-to-r from-salon-400/40 to-salon-600/40 dark:from-salon-700/40 dark:to-salon-900/40 backdrop-blur-sm"></div>
-                        <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-20 h-20 border-4 border-background shadow-lg">
+                        <div className="h-24 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700"></div>
+                        <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-20 h-20 border-4 border-white dark:border-gray-900 shadow-md">
                           <AvatarImage src={employee.avatar} alt={employee.name} />
-                          <AvatarFallback className="text-xl bg-gradient-to-br from-salon-400 to-salon-600 text-white">
+                          <AvatarFallback className="text-xl bg-black text-white dark:bg-gray-700">
                             {employee.name.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
                         <div className="absolute top-3 right-3 flex gap-1">
                           <Button 
-                            variant="secondary" 
+                            variant="outline" 
                             size="icon"
-                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-sm"
+                            className="h-8 w-8 rounded-full bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-sm border-gray-200 dark:border-gray-700"
                             onClick={() => openEditDialog(employee)}
                           >
-                            <Edit className="h-3.5 w-3.5 text-salon-600 dark:text-salon-400" />
+                            <Edit className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                           </Button>
                           <Button 
-                            variant="destructive" 
+                            variant="outline" 
                             size="icon"
-                            className="h-8 w-8 rounded-full bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-destructive shadow-sm"
+                            className="h-8 w-8 rounded-full bg-white/90 dark:bg-gray-800/90 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 shadow-sm border-gray-200 dark:border-gray-700"
                             onClick={() => openDeleteDialog(employee)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -629,45 +629,47 @@ const EmployeesPage: React.FC = () => {
                       <div className="pt-14 px-6 pb-6">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <h3 className="font-bold text-lg">{employee.name}</h3>
-                            <p className="text-muted-foreground text-sm">{employee.role}</p>
+                            <h3 className="font-bold text-lg text-black dark:text-white">{employee.name}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm">{employee.role}</p>
                           </div>
                           <Badge 
-                            variant={employee.status === "active" ? "success" : "secondary"}
-                            className={`ml-auto ${employee.status === "active" ? "animate-pulse" : ""}`}
+                            variant={employee.status === "active" ? "default" : "secondary"}
+                            className={employee.status === "active" 
+                              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100" 
+                              : "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-100"}
                           >
                             {employee.status === "active" ? "Ativo" : "Inativo"}
                           </Badge>
                         </div>
                         
-                        <div className="space-y-2 mt-4">
-                          <div className="flex items-center text-sm">
-                            <Mail className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
+                        <div className="space-y-3 mt-4">
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <Mail className="h-4 w-4 mr-2 text-gray-400" />
                             <span>{employee.email}</span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <Phone className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <Phone className="h-4 w-4 mr-2 text-gray-400" />
                             <span>{employee.phone}</span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <Calendar className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <Calendar className="h-4 w-4 mr-2 text-gray-400" />
                             <span>Contratado em {formatDate(employee.hireDate)}</span>
                           </div>
-                          <div className="flex items-center text-sm">
-                            <DollarSign className="h-4 w-4 mr-2 text-salon-500 dark:text-salon-400" />
+                          <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <DollarSign className="h-4 w-4 mr-2 text-gray-400" />
                             <span>Comissão de {employee.commission}%</span>
                           </div>
                         </div>
                         
-                        <Separator className="my-4 bg-salon-100 dark:bg-salon-800/50" />
+                        <Separator className="my-4 bg-gray-200 dark:bg-gray-700" />
                         
                         <div>
-                          <p className="text-sm font-medium mb-2 flex items-center text-salon-600 dark:text-salon-400">
-                            <Star className="h-4 w-4 mr-1 inline" /> Especialidades
+                          <p className="text-sm font-medium mb-2 flex items-center text-gray-700 dark:text-gray-300">
+                            <Star className="h-4 w-4 mr-1 inline text-gray-400" /> Especialidades
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             {employee.specialties.map(specialty => (
-                              <Badge key={specialty} variant="outline" className="text-xs bg-salon-50 dark:bg-salon-900/50 border-salon-200 dark:border-salon-700 text-salon-700 dark:text-salon-300 hover:bg-salon-100 dark:hover:bg-salon-800/70 transition-colors">
+                              <Badge key={specialty} variant="outline" className="text-xs bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-colors">
                                 {specialty}
                               </Badge>
                             ))}
@@ -679,7 +681,7 @@ const EmployeesPage: React.FC = () => {
                             <Button 
                               variant="ghost" 
                               size="sm" 
-                              className="w-full text-xs flex justify-between items-center p-2 text-salon-600 dark:text-salon-400"
+                              className="w-full text-xs flex justify-between items-center p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/70"
                               onClick={() => toggleExpandEmployee(employee.id)}
                             >
                               {expandedEmployeeId === employee.id ? "Esconder bio" : "Ver bio"}
@@ -699,7 +701,7 @@ const EmployeesPage: React.FC = () => {
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden"
                                 >
-                                  <p className="text-sm text-muted-foreground mt-2 bg-salon-50/50 dark:bg-salon-900/20 p-3 rounded-md">
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-md">
                                     {employee.bio}
                                   </p>
                                 </motion.div>
@@ -720,84 +722,86 @@ const EmployeesPage: React.FC = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="rounded-xl border-0 glass-card overflow-hidden shadow-lg"
+              className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm bg-white dark:bg-gray-900"
             >
               <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-salon-100/50 dark:bg-salon-800/30 backdrop-blur-sm">
-                    <tr>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Funcionário</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Contato</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Especialidades</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Comissão</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Status</th>
-                      <th className="py-3 px-4 text-left font-medium text-salon-700 dark:text-salon-300">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-gray-800/50">
+                    <TableRow className="border-gray-200 dark:border-gray-700 hover:bg-transparent">
+                      <TableHead className="text-gray-700 dark:text-gray-300">Funcionário</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300">Contato</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300">Especialidades</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300">Comissão</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300">Status</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filteredEmployees.map((employee, index) => (
                       <motion.tr 
                         key={employee.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: index * 0.05 }}
-                        className="border-b border-salon-100/30 dark:border-salon-800/30 hover:bg-salon-50/50 dark:hover:bg-salon-900/20"
+                        className="border-b border-gray-200 dark:border-gray-800/50 hover:bg-gray-50/50 dark:hover:bg-gray-800/20"
                       >
-                        <td className="py-3 px-4">
+                        <TableCell>
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10 border-2 border-salon-100 dark:border-salon-800">
+                            <Avatar className="h-10 w-10 border border-gray-200 dark:border-gray-700">
                               <AvatarImage src={employee.avatar} alt={employee.name} />
-                              <AvatarFallback className="text-sm bg-gradient-to-br from-salon-400 to-salon-600 text-white">
+                              <AvatarFallback className="text-sm bg-black text-white dark:bg-gray-700">
                                 {employee.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium">{employee.name}</p>
-                              <p className="text-xs text-muted-foreground">{employee.role}</p>
+                              <p className="font-medium text-black dark:text-white">{employee.name}</p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{employee.role}</p>
                             </div>
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell>
                           <div className="space-y-1">
-                            <div className="flex items-center text-xs">
-                              <Mail className="h-3 w-3 mr-1 text-salon-500 dark:text-salon-400" />
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
+                              <Mail className="h-3 w-3 mr-1 text-gray-400" />
                               <span>{employee.email}</span>
                             </div>
-                            <div className="flex items-center text-xs">
-                              <Phone className="h-3 w-3 mr-1 text-salon-500 dark:text-salon-400" />
+                            <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
+                              <Phone className="h-3 w-3 mr-1 text-gray-400" />
                               <span>{employee.phone}</span>
                             </div>
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {employee.specialties.map(specialty => (
-                              <Badge key={specialty} variant="outline" className="text-[10px] px-1 py-0 bg-salon-50 dark:bg-salon-900/50 border-salon-200 dark:border-salon-700">
+                              <Badge key={specialty} variant="outline" className="text-[10px] px-1 py-0 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
                                 {specialty}
                               </Badge>
                             ))}
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-2">
-                            <DollarSign className="h-3 w-3 text-salon-500 dark:text-salon-400" />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
+                            <DollarSign className="h-3 w-3 text-gray-400" />
                             <span>{employee.commission}%</span>
                           </div>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell>
                           <Badge 
-                            variant={employee.status === "active" ? "success" : "secondary"}
-                            className="text-[10px]"
+                            variant={employee.status === "active" ? "default" : "secondary"}
+                            className={employee.status === "active" 
+                              ? "text-[10px] bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-100" 
+                              : "text-[10px] bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-100"}
                           >
                             {employee.status === "active" ? "Ativo" : "Inativo"}
                           </Badge>
-                        </td>
-                        <td className="py-3 px-4">
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center gap-2">
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="h-8 w-8 p-0 text-salon-600 dark:text-salon-400 hover:text-salon-700 hover:bg-salon-100 dark:hover:bg-salon-900/30"
+                              className="h-8 w-8 p-0 text-gray-600 dark:text-gray-400 hover:text-black hover:bg-gray-100 dark:hover:bg-gray-800/70"
                               onClick={() => openEditDialog(employee)}
                             >
                               <Edit className="h-3.5 w-3.5" />
@@ -805,67 +809,68 @@ const EmployeesPage: React.FC = () => {
                             <Button 
                               variant="ghost" 
                               size="sm"
-                              className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                               onClick={() => openDeleteDialog(employee)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>
-                        </td>
+                        </TableCell>
                       </motion.tr>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       )}
       
+      {/* Dialog Components */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Adicionar Funcionário</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black dark:text-white">Adicionar Funcionário</DialogTitle>
+            <DialogDescription className="text-gray-500 dark:text-gray-400">
               Insira os dados do novo profissional da sua equipe.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className={formErrors.name ? "text-destructive" : ""}>
+                <Label htmlFor="name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Nome Completo *
                 </Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.name && (
-                  <p className="text-xs text-destructive">{formErrors.name}</p>
+                  <p className="text-xs text-red-500">{formErrors.name}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="role" className={formErrors.role ? "text-destructive" : ""}>
+                <Label htmlFor="role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Função *
                 </Label>
                 <Input
                   id="role"
                   value={formData.role}
                   onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.role && (
-                  <p className="text-xs text-destructive">{formErrors.role}</p>
+                  <p className="text-xs text-red-500">{formErrors.role}</p>
                 )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className={formErrors.email ? "text-destructive" : ""}>
+                <Label htmlFor="email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Email *
                 </Label>
                 <Input
@@ -873,40 +878,40 @@ const EmployeesPage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.email && (
-                  <p className="text-xs text-destructive">{formErrors.email}</p>
+                  <p className="text-xs text-red-500">{formErrors.email}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="phone" className={formErrors.phone ? "text-destructive" : ""}>
+                <Label htmlFor="phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Telefone *
                 </Label>
                 <Input
                   id="phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.phone && (
-                  <p className="text-xs text-destructive">{formErrors.phone}</p>
+                  <p className="text-xs text-red-500">{formErrors.phone}</p>
                 )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status" className="text-gray-700 dark:text-gray-300">Status</Label>
                 <Select 
                   value={formData.status} 
                   onValueChange={(value) => handleInputChange('status', value)}
                 >
-                  <SelectTrigger id="status">
+                  <SelectTrigger id="status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                     <SelectItem value="active">Ativo</SelectItem>
                     <SelectItem value="inactive">Inativo</SelectItem>
                   </SelectContent>
@@ -914,7 +919,7 @@ const EmployeesPage: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="commission">Comissão (%)</Label>
+                <Label htmlFor="commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
                 <Input
                   id="commission"
                   type="number"
@@ -922,13 +927,14 @@ const EmployeesPage: React.FC = () => {
                   max="100"
                   value={formData.commission}
                   onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                  className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Especialidades</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-background/50">
+              <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
                 {specialtiesList.map(specialty => (
                   <div key={specialty} className="flex items-center space-x-2">
                     <Checkbox 
@@ -936,7 +942,7 @@ const EmployeesPage: React.FC = () => {
                       checked={(formData.specialties || []).includes(specialty)}
                       onCheckedChange={() => handleSpecialtyToggle(specialty)}
                     />
-                    <Label htmlFor={`specialty-${specialty}`} className="text-sm">
+                    <Label htmlFor={`specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
                       {specialty}
                     </Label>
                   </div>
@@ -945,13 +951,13 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="bio">Biografia</Label>
+              <Label htmlFor="bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
               <Textarea
                 id="bio"
                 value={formData.bio}
                 onChange={(e) => handleInputChange('bio', e.target.value)}
                 placeholder="Descreva a experiência e especialidade deste profissional..."
-                className="min-h-[100px]"
+                className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
               />
             </div>
           </div>
@@ -960,13 +966,14 @@ const EmployeesPage: React.FC = () => {
               variant="outline" 
               onClick={() => setShowAddDialog(false)}
               disabled={isSubmitting}
+              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Cancelar
             </Button>
             <Button 
-              variant="salon" 
               onClick={handleAddEmployee}
               disabled={isSubmitting}
+              className="bg-black hover:bg-gray-800 text-white"
             >
               {isSubmitting ? (
                 <>
@@ -981,50 +988,51 @@ const EmployeesPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Editar Funcionário</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black dark:text-white">Editar Funcionário</DialogTitle>
+            <DialogDescription className="text-gray-500 dark:text-gray-400">
               Modifique os dados do profissional.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-name" className={formErrors.name ? "text-destructive" : ""}>
+                <Label htmlFor="edit-name" className={formErrors.name ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Nome Completo *
                 </Label>
                 <Input
                   id="edit-name"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={formErrors.name ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.name ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.name && (
-                  <p className="text-xs text-destructive">{formErrors.name}</p>
+                  <p className="text-xs text-red-500">{formErrors.name}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="edit-role" className={formErrors.role ? "text-destructive" : ""}>
+                <Label htmlFor="edit-role" className={formErrors.role ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Função *
                 </Label>
                 <Input
                   id="edit-role"
                   value={formData.role}
                   onChange={(e) => handleInputChange('role', e.target.value)}
-                  className={formErrors.role ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.role ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.role && (
-                  <p className="text-xs text-destructive">{formErrors.role}</p>
+                  <p className="text-xs text-red-500">{formErrors.role}</p>
                 )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-email" className={formErrors.email ? "text-destructive" : ""}>
+                <Label htmlFor="edit-email" className={formErrors.email ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Email *
                 </Label>
                 <Input
@@ -1032,40 +1040,40 @@ const EmployeesPage: React.FC = () => {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={formErrors.email ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.email ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.email && (
-                  <p className="text-xs text-destructive">{formErrors.email}</p>
+                  <p className="text-xs text-red-500">{formErrors.email}</p>
                 )}
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="edit-phone" className={formErrors.phone ? "text-destructive" : ""}>
+                <Label htmlFor="edit-phone" className={formErrors.phone ? "text-red-500" : "text-gray-700 dark:text-gray-300"}>
                   Telefone *
                 </Label>
                 <Input
                   id="edit-phone"
                   value={formData.phone}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
-                  className={formErrors.phone ? "border-destructive focus-visible:ring-destructive" : ""}
+                  className={formErrors.phone ? "border-red-300 focus-visible:ring-red-500/20" : "border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"}
                 />
                 {formErrors.phone && (
-                  <p className="text-xs text-destructive">{formErrors.phone}</p>
+                  <p className="text-xs text-red-500">{formErrors.phone}</p>
                 )}
               </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-status">Status</Label>
+                <Label htmlFor="edit-status" className="text-gray-700 dark:text-gray-300">Status</Label>
                 <Select 
                   value={formData.status} 
                   onValueChange={(value) => handleInputChange('status', value)}
                 >
-                  <SelectTrigger id="edit-status">
+                  <SelectTrigger id="edit-status" className="border-gray-200 dark:border-gray-700 focus:ring-gray-400/20">
                     <SelectValue placeholder="Selecione o status" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
                     <SelectItem value="active">Ativo</SelectItem>
                     <SelectItem value="inactive">Inativo</SelectItem>
                   </SelectContent>
@@ -1073,7 +1081,7 @@ const EmployeesPage: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="edit-commission">Comissão (%)</Label>
+                <Label htmlFor="edit-commission" className="text-gray-700 dark:text-gray-300">Comissão (%)</Label>
                 <Input
                   id="edit-commission"
                   type="number"
@@ -1081,13 +1089,14 @@ const EmployeesPage: React.FC = () => {
                   max="100"
                   value={formData.commission}
                   onChange={(e) => handleInputChange('commission', parseInt(e.target.value, 10))}
+                  className="border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
                 />
               </div>
             </div>
             
             <div className="space-y-2">
-              <Label>Especialidades</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-background/50">
+              <Label className="text-gray-700 dark:text-gray-300">Especialidades</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 border rounded-md p-3 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
                 {specialtiesList.map(specialty => (
                   <div key={specialty} className="flex items-center space-x-2">
                     <Checkbox 
@@ -1095,7 +1104,7 @@ const EmployeesPage: React.FC = () => {
                       checked={(formData.specialties || []).includes(specialty)}
                       onCheckedChange={() => handleSpecialtyToggle(specialty)}
                     />
-                    <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm">
+                    <Label htmlFor={`edit-specialty-${specialty}`} className="text-sm text-gray-600 dark:text-gray-400">
                       {specialty}
                     </Label>
                   </div>
@@ -1104,13 +1113,13 @@ const EmployeesPage: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="edit-bio">Biografia</Label>
+              <Label htmlFor="edit-bio" className="text-gray-700 dark:text-gray-300">Biografia</Label>
               <Textarea
                 id="edit-bio"
                 value={formData.bio}
                 onChange={(e) => handleInputChange('bio', e.target.value)}
                 placeholder="Descreva a experiência e especialidade deste profissional..."
-                className="min-h-[100px]"
+                className="min-h-[100px] border-gray-200 dark:border-gray-700 focus-visible:ring-gray-400/20"
               />
             </div>
           </div>
@@ -1119,13 +1128,14 @@ const EmployeesPage: React.FC = () => {
               variant="outline" 
               onClick={() => setShowEditDialog(false)}
               disabled={isSubmitting}
+              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Cancelar
             </Button>
             <Button 
-              variant="salon" 
               onClick={handleEditEmployee}
               disabled={isSubmitting}
+              className="bg-black hover:bg-gray-800 text-white"
             >
               {isSubmitting ? (
                 <>
@@ -1140,13 +1150,14 @@ const EmployeesPage: React.FC = () => {
         </DialogContent>
       </Dialog>
       
+      {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
           <DialogHeader>
-            <DialogTitle>Confirmar exclusão</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-black dark:text-white">Confirmar exclusão</DialogTitle>
+            <DialogDescription className="text-gray-500 dark:text-gray-400">
               Esta ação não pode ser desfeita. Isso excluirá permanentemente o funcionário{' '}
-              <span className="font-medium text-salon-600 dark:text-salon-400">
+              <span className="font-medium text-gray-900 dark:text-gray-100">
                 {currentEmployee?.name}
               </span>.
             </DialogDescription>
@@ -1156,6 +1167,7 @@ const EmployeesPage: React.FC = () => {
               variant="outline" 
               onClick={() => setShowDeleteDialog(false)}
               disabled={isSubmitting}
+              className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               Cancelar
             </Button>
