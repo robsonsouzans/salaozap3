@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Scissors } from 'lucide-react';
+
+import React, { useState, useMemo } from 'react';
+import { Plus, Edit, Trash2, Search, Scissors, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
@@ -7,6 +8,8 @@ import SidebarMenu from '@/components/SidebarMenu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -26,54 +29,75 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const mockServices = [
-  { id: 1, name: 'Corte Feminino', price: 120, duration: 60, category: 'Cabelo' },
-  { id: 2, name: 'Corte Masculino', price: 80, duration: 45, category: 'Cabelo' },
-  { id: 3, name: 'Coloração', price: 150, duration: 90, category: 'Cabelo' },
-  { id: 4, name: 'Manicure', price: 60, duration: 45, category: 'Unhas' },
-  { id: 5, name: 'Pedicure', price: 75, duration: 60, category: 'Unhas' },
-  { id: 6, name: 'Hidratação', price: 90, duration: 45, category: 'Cabelo' },
+  { id: 1, name: 'Corte Feminino', price: 120, duration: 60, category: 'Cabelo', active: true },
+  { id: 2, name: 'Corte Masculino', price: 80, duration: 45, category: 'Cabelo', active: true },
+  { id: 3, name: 'Coloração', price: 150, duration: 90, category: 'Cabelo', active: true },
+  { id: 4, name: 'Manicure', price: 60, duration: 45, category: 'Unhas', active: true },
+  { id: 5, name: 'Pedicure', price: 75, duration: 60, category: 'Unhas', active: false },
+  { id: 6, name: 'Hidratação', price: 90, duration: 45, category: 'Cabelo', active: true },
 ];
 
 const ServiceCard = ({ service, onEdit, onDelete }) => {
   return (
-    <Card className="shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{service.name}</CardTitle>
-        <CardDescription>{service.category}</CardDescription>
-      </CardHeader>
-      <CardContent className="pb-2">
-        <div className="grid grid-cols-2 gap-2 text-sm">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card className={`shadow-sm hover:shadow-md transition-shadow ${!service.active ? 'opacity-60' : ''}`}>
+        <CardHeader className="pb-2 flex flex-row justify-between items-start">
           <div>
-            <span className="text-muted-foreground">Preço:</span>
-            <p className="font-medium">R$ {service.price.toFixed(2)}</p>
+            <CardTitle className="text-lg flex items-center">
+              {service.name}
+              {!service.active && (
+                <span className="ml-2 text-xs bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">
+                  Inativo
+                </span>
+              )}
+            </CardTitle>
+            <CardDescription>{service.category}</CardDescription>
           </div>
-          <div>
-            <span className="text-muted-foreground">Duração:</span>
-            <p className="font-medium">{service.duration} min</p>
+          {service.active && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+              <Check className="mr-1 h-3 w-3" />
+              Ativo
+            </span>
+          )}
+        </CardHeader>
+        <CardContent className="pb-2">
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span className="text-muted-foreground">Preço:</span>
+              <p className="font-medium">R$ {service.price.toFixed(2)}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Duração:</span>
+              <p className="font-medium">{service.duration} min</p>
+            </div>
           </div>
-        </div>
-      </CardContent>
-      <CardFooter className="pt-2 flex justify-end gap-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-8 w-8 p-0" 
-          onClick={() => onEdit(service)}
-        >
-          <Edit className="h-4 w-4" />
-          <span className="sr-only">Editar</span>
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="h-8 w-8 p-0 text-destructive hover:bg-destructive hover:text-destructive-foreground" 
-          onClick={() => onDelete(service)}
-        >
-          <Trash2 className="h-4 w-4" />
-          <span className="sr-only">Excluir</span>
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardContent>
+        <CardFooter className="pt-2 flex justify-end gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 w-8 p-0 rounded-full" 
+            onClick={() => onEdit(service)}
+          >
+            <Edit className="h-4 w-4" />
+            <span className="sr-only">Editar</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 w-8 p-0 rounded-full text-destructive hover:bg-destructive hover:text-destructive-foreground" 
+            onClick={() => onDelete(service)}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="sr-only">Excluir</span>
+          </Button>
+        </CardFooter>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -89,7 +113,8 @@ const ServiceFormDialog = ({
       name: '', 
       price: '', 
       duration: '', 
-      category: '' 
+      category: '',
+      active: true
     }
   );
 
@@ -100,6 +125,13 @@ const ServiceFormDialog = ({
       [name]: name === 'price' || name === 'duration' 
         ? value.replace(/[^0-9.]/g, '') 
         : value
+    }));
+  };
+
+  const handleCheckboxChange = (checked) => {
+    setFormData(prev => ({
+      ...prev,
+      active: checked
     }));
   };
 
@@ -139,6 +171,7 @@ const ServiceFormDialog = ({
               value={formData.name}
               onChange={handleChange}
               placeholder="Ex: Corte Feminino"
+              className="border-gray-300 dark:border-gray-700 focus:ring-gray-400 dark:focus:ring-gray-600"
               required
             />
           </div>
@@ -153,6 +186,7 @@ const ServiceFormDialog = ({
               value={formData.category}
               onChange={handleChange}
               placeholder="Ex: Cabelo, Unhas, etc."
+              className="border-gray-300 dark:border-gray-700 focus:ring-gray-400 dark:focus:ring-gray-600"
               required
             />
           </div>
@@ -168,6 +202,7 @@ const ServiceFormDialog = ({
                 value={formData.price}
                 onChange={handleChange}
                 placeholder="Ex: 120.00"
+                className="border-gray-300 dark:border-gray-700 focus:ring-gray-400 dark:focus:ring-gray-600"
                 required
               />
             </div>
@@ -182,16 +217,33 @@ const ServiceFormDialog = ({
                 value={formData.duration}
                 onChange={handleChange}
                 placeholder="Ex: 60"
+                className="border-gray-300 dark:border-gray-700 focus:ring-gray-400 dark:focus:ring-gray-600"
                 required
               />
             </div>
           </div>
           
-          <DialogFooter className="mt-6">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex items-center space-x-2 pt-2">
+            <Checkbox 
+              id="active" 
+              checked={formData.active} 
+              onCheckedChange={handleCheckboxChange}
+            />
+            <label
+              htmlFor="active"
+              className="text-sm font-medium leading-none"
+            >
+              Serviço ativo
+            </label>
+          </div>
+          
+          <Separator className="my-4" />
+          
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} className="border-gray-300 dark:border-gray-700">
               Cancelar
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700">
               {isEditing ? 'Salvar alterações' : 'Adicionar serviço'}
             </Button>
           </DialogFooter>
@@ -209,7 +261,7 @@ const DeleteConfirmDialog = ({
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Confirmar exclusão</DialogTitle>
           <DialogDescription>
@@ -218,7 +270,7 @@ const DeleteConfirmDialog = ({
         </DialogHeader>
         
         <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} className="border-gray-300 dark:border-gray-700">
             Cancelar
           </Button>
           <Button 
@@ -240,15 +292,27 @@ const ServicesPage = () => {
   const { toast } = useToast();
   const [services, setServices] = useState(mockServices);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showActive, setShowActive] = useState(true);
+  const [showInactive, setShowInactive] = useState(true);
   
   const [showAddEditDialog, setShowAddEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
   
-  const filteredServices = services.filter(service => 
-    service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    service.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredServices = useMemo(() => {
+    return services.filter(service => {
+      // Filter by active status
+      if ((!showActive && service.active) || (!showInactive && !service.active)) {
+        return false;
+      }
+      
+      // Filter by search query
+      return (
+        service.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        service.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    });
+  }, [services, searchQuery, showActive, showInactive]);
   
   const handleAddEditService = (service) => {
     setShowAddEditDialog(true);
@@ -338,7 +402,7 @@ const ServicesPage = () => {
               </div>
               
               <Button 
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700"
                 onClick={() => {
                   setSelectedService(null);
                   setShowAddEditDialog(true);
@@ -351,15 +415,49 @@ const ServicesPage = () => {
             
             <motion.div 
               variants={itemAnimation}
-              className="relative"
+              className="space-y-4"
             >
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
-              <Input
-                placeholder="Buscar serviços..."
-                className="pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <Input
+                  placeholder="Buscar serviços..."
+                  className="pl-9 border-gray-300 dark:border-gray-700 focus:ring-gray-400 dark:focus:ring-gray-600"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              <div className="flex flex-wrap gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="show-active" 
+                    checked={showActive} 
+                    onCheckedChange={setShowActive}
+                  />
+                  <label
+                    htmlFor="show-active"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Serviços ativos
+                  </label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="show-inactive" 
+                    checked={showInactive} 
+                    onCheckedChange={setShowInactive}
+                  />
+                  <label
+                    htmlFor="show-inactive"
+                    className="text-sm font-medium leading-none"
+                  >
+                    Serviços inativos
+                  </label>
+                </div>
+              </div>
+              
+              <Separator className="my-2" />
             </motion.div>
             
             <motion.div
@@ -384,6 +482,8 @@ const ServicesPage = () => {
                   <p className="text-gray-500 dark:text-gray-400 mt-1 max-w-md">
                     {searchQuery ? 
                       `Não encontramos serviços correspondentes à pesquisa "${searchQuery}".` : 
+                      (!showActive && !showInactive) ?
+                      "Ajuste os filtros de status para visualizar os serviços." :
                       "Você ainda não cadastrou nenhum serviço. Clique em 'Novo serviço' para começar."}
                   </p>
                 </div>
