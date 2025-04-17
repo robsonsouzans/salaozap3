@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Plus, Edit, Trash2, Search, Scissors, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -27,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { type CheckedState } from "@radix-ui/react-checkbox";
 
 const mockServices = [
   { id: 1, name: 'Corte Feminino', price: 120, duration: 60, category: 'Cabelo', active: true },
@@ -356,6 +356,14 @@ const ServicesPage = () => {
     });
   };
   
+  const handleShowActiveChange = (checked: CheckedState) => {
+    setShowActive(checked === true);
+  };
+  
+  const handleShowInactiveChange = (checked: CheckedState) => {
+    setShowInactive(checked === true);
+  };
+  
   const containerAnimation = {
     hidden: { opacity: 0 },
     show: {
@@ -432,7 +440,7 @@ const ServicesPage = () => {
                   <Checkbox 
                     id="show-active" 
                     checked={showActive} 
-                    onCheckedChange={setShowActive}
+                    onCheckedChange={handleShowActiveChange}
                   />
                   <label
                     htmlFor="show-active"
@@ -446,7 +454,7 @@ const ServicesPage = () => {
                   <Checkbox 
                     id="show-inactive" 
                     checked={showInactive} 
-                    onCheckedChange={setShowInactive}
+                    onCheckedChange={handleShowInactiveChange}
                   />
                   <label
                     htmlFor="show-inactive"
